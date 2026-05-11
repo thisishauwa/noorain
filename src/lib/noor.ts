@@ -58,112 +58,112 @@ export function getNoorMood(score: number): NoorMoodResult {
     return {
       mood: "Nervous",
       asset: "Nervous.png",
-      message: "Are you okay? I'm here.",
+      message: "Uhh... are you okay? I'm here.",
       tier: "neutral",
     };
   if (score <= 45)
     return {
       mood: "Confused",
       asset: "Confused.png",
-      message: "Are you okay? I'm here.",
+      message: "Uhh... are you okay? I'm here.",
       tier: "neutral",
     };
   if (score <= 50)
     return {
       mood: "Bored",
       asset: "Bored.png",
-      message: "One page. That's all.",
+      message: "Just one page. That's all.",
       tier: "neutral",
     };
   if (score <= 55)
     return {
       mood: "Finger biting",
       asset: "Finger-biting.png",
-      message: "One page. That's all.",
+      message: "Just one page. That's all.",
       tier: "neutral",
     };
   if (score <= 60)
     return {
       mood: "Puff",
       asset: "Puff.png",
-      message: "You came back! Let's read.",
+      message: "You came back! Let's get it.",
       tier: "good",
     };
   if (score <= 65)
     return {
       mood: "Waving",
       asset: "Waving.png",
-      message: "You came back! Let's read.",
+      message: "You came back! Let's get it.",
       tier: "good",
     };
   if (score <= 70)
     return {
       mood: "Winking",
       asset: "Winking.png",
-      message: "We're doing it. Keep going.",
+      message: "We're doing it. Gotta keep going.",
       tier: "good",
     };
   if (score <= 75)
     return {
       mood: "Cute",
       asset: "Cute.png",
-      message: "We're doing it. Keep going.",
+      message: "We're actually doing it. Gotta keep going.",
       tier: "good",
     };
   if (score <= 80)
     return {
       mood: "Groovy",
       asset: "Groovy.png",
-      message: "This is what it feels like.",
+      message: "So this is what it feels like.",
       tier: "good",
     };
   if (score <= 85)
     return {
       mood: "Excited_Childlike",
       asset: "Excited_Childlike.png",
-      message: "Noorain is so happy right now.",
+      message: "I'm so happy right now.",
       tier: "good",
     };
   if (score <= 88)
     return {
       mood: "Tongue out",
       asset: "Tongue-out.png",
-      message: "Noorain is so happy right now.",
+      message: "I'm so happy right now.",
       tier: "good",
     };
   if (score <= 90)
     return {
       mood: "Cool",
       asset: "Cool.png",
-      message: "This is what it feels like.",
+      message: "So this is what it feels like.",
       tier: "peak",
     };
   if (score <= 93)
     return {
       mood: "Rock & Roll",
       asset: "Rock-and-roll.png",
-      message: "So much barakah. Let's give some away.",
+      message: "I'm swimming in barakah. Let's give some away.",
       tier: "peak",
     };
   if (score <= 95)
     return {
       mood: "Rock & Roll 2",
       asset: "Rock-and-roll-2.png",
-      message: "So much barakah. Let's give some away.",
+      message: "I'm swimming in barakah. Let's give some away.",
       tier: "peak",
     };
   if (score <= 98)
     return {
       mood: "Hugs",
       asset: "Hugs.png",
-      message: "Noorain gave on your behalf today.",
+      message: "I gave on your behalf today.",
       sadaqahTrigger: true,
       tier: "peak",
     };
   return {
     mood: "Kissy face",
     asset: "Kissy-face.png",
-    message: "Maximum light. Maximum barakah.",
+    message: "I'm the happiest I've been in years!",
     sadaqahTrigger: true,
     tier: "peak",
   };

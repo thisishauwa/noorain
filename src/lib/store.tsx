@@ -139,7 +139,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     setNoor((prev) => {
       let newScore = prev.moodScore + 5;
-      newScore = Math.max(0, Math.min(100, newScore));
+      newScore = Math.max(10, Math.min(100, newScore));
       const moodInfo = getNoorMood(newScore);
       return {
         moodScore: newScore,
@@ -165,7 +165,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const today = new Date().toISOString().split("T")[0];
     setNoor((prev) => {
       let newScore = prev.moodScore + 25;
-      newScore = Math.max(0, Math.min(100, newScore));
+      newScore = Math.max(10, Math.min(100, newScore));
       const moodInfo = getNoorMood(newScore);
       return {
         moodScore: newScore,
@@ -209,11 +209,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       if (missedDays > 0) {
         let newScore = prev.moodScore;
-        if (missedDays >= 5) newScore = 0;
+        if (missedDays >= 5) newScore = 10;
         else if (missedDays >= 2) newScore -= 30;
         else newScore -= 20;
 
-        newScore = Math.max(0, Math.min(100, newScore));
+        newScore = Math.max(10, Math.min(100, newScore));
         const moodInfo = getNoorMood(newScore);
         return {
           ...prev,
