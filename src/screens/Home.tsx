@@ -72,13 +72,13 @@ export function Home({
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-orange-50 border-2 border-orange-200 rounded-full px-3 py-1.5">
+            <div className="h-10 flex items-center gap-1.5 bg-orange-50 border-2 border-orange-200 rounded-full px-3">
               <Flash size="16" color="#FF9600" variant="Bold" />
               <span className="text-sm font-extrabold text-[#FF9600]">
                 {streak.current}
               </span>
             </div>
-            <div className="flex items-center bg-red-50 border-2 border-red-200 rounded-full px-3 py-1.5 whitespace-nowrap">
+            <div className="h-10 flex items-center bg-red-50 border-2 border-red-200 rounded-full px-3 whitespace-nowrap">
               <span className="text-xs font-extrabold text-[#FF4B4B] whitespace-nowrap">
                 {sadaqah.meals}
                 {sadaqah.meals === 1 ? " meal" : " meals"}

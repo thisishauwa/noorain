@@ -753,24 +753,24 @@ export function Reader({
                           onClick={() => {
                             if (!answered) setReflectionA1(i);
                           }}
-                          className={`w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-bold text-left leading-snug transition-all ${
+                          className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
                             !answered
-                              ? "bg-white border-2 border-gray-200 border-b-4 text-gray-700 hover:border-[#1CB0F6]/40 active:scale-95"
+                              ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#1CB0F6]/3 active:scale-95"
                               : isCorrect
                                 ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
                                 : isSelected
-                                  ? "bg-[#1CB0F6] border-2 border-[#1CB0F6] border-b-4 text-white"
+                                  ? "bg-[#1CB0F6]/12 border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]"
                                   : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
                           }`}
                         >
                           <span
-                            className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center font-black ${
+                            className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-black ${
                               !answered
-                                ? "bg-[#1CB0F6] text-white"
+                                ? "bg-[#1CB0F6]/12 text-[#1CB0F6] border border-[#1CB0F6]/35"
                                 : isCorrect
                                   ? "bg-[#58CC02] text-white"
                                   : isSelected
-                                    ? "bg-white/20 text-white"
+                                    ? "bg-[#1CB0F6] text-white"
                                     : "bg-gray-200 text-gray-500"
                             }`}
                           >
@@ -824,24 +824,24 @@ export function Reader({
                           onClick={() => {
                             if (!answered) setReflectionA2(i);
                           }}
-                          className={`w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-bold text-left leading-snug transition-all ${
+                          className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
                             !answered
-                              ? "bg-white border-2 border-gray-200 border-b-4 text-gray-700 hover:border-[#1CB0F6]/40 active:scale-95"
+                              ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#1CB0F6]/3 active:scale-95"
                               : isCorrect
                                 ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
                                 : isSelected
-                                  ? "bg-[#1CB0F6] border-2 border-[#1CB0F6] border-b-4 text-white"
+                                  ? "bg-[#1CB0F6]/12 border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]"
                                   : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
                           }`}
                         >
                           <span
-                            className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center font-black ${
+                            className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-black ${
                               !answered
-                                ? "bg-[#1CB0F6] text-white"
+                                ? "bg-[#1CB0F6]/12 text-[#1CB0F6] border border-[#1CB0F6]/35"
                                 : isCorrect
                                   ? "bg-[#58CC02] text-white"
                                   : isSelected
-                                    ? "bg-white/20 text-white"
+                                    ? "bg-[#1CB0F6] text-white"
                                     : "bg-gray-200 text-gray-500"
                             }`}
                           >

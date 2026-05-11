@@ -1,7 +1,13 @@
+import { humanizeNoorainQuestion } from "./humaniser";
+
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
-const CACHE_KEY = "noorain_reflection_cache_v1";
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+const CACHE_KEY = "noorain_reflection_cache_v3";
+const pendingRequests = new Map<
+  string,
+  Promise<[ReflectionQuestion, ReflectionQuestion]>
+>();
 
 export interface ReflectionQuestion {
   question: string;
@@ -20,6 +26,12 @@ export async function generateReflectionQuestions(
   if (!API_KEY) return fallback(surahName, translations);
 
   const excerpt = translations.slice(0, 6).join(" ").slice(0, 800);
+  const cacheKey = `${surahName}:${hashText(excerpt)}`;
+  const cached = readCache(cacheKey);
+  if (cached) return cached;
+  const pending = pendingRequests.get(cacheKey);
+  if (pending) return pending;
+
   const prompt = `You are Noorain, a warm Quran companion reading alongside the user. Sound human, affectionate, and slightly quirky. You are allowed to say things like "I was reading that with you", "wait", "mm okay", or "let me quiz you" — but keep it natural and short.
 
 The user just read ${surahName}. Excerpt: "${excerpt}".
@@ -39,54 +51,64 @@ Rules:
 Return ONLY valid JSON:
 [{"question":"...","options":["...","...","...","..."],"correct":0},{"question":"...","options":["...","...","...","..."],"correct":2}]`;
 
-  try {
-    const res = await fetch(`${ENDPOINT}?key=${API_KEY}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.55, maxOutputTokens: 500 },
-      }),
-    });
-    if (!res.ok) {
-      if (res.status === 429) return cachedOrFallback(surahName, translations);
-      return fallback(surahName, translations);
+  const request = (async () => {
+    try {
+      const res = await fetch(`${ENDPOINT}?key=${API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.55,
+            maxOutputTokens: 500,
+            responseMimeType: "application/json",
+          },
+        }),
+      });
+      if (!res.ok) {
+        if (res.status === 429)
+          return cachedOrFallback(cacheKey, surahName, translations);
+        return fallback(surahName, translations);
+      }
+      const data = await res.json();
+      const text =
+        data?.candidates?.[0]?.content?.parts
+          ?.map((part: { text?: string }) => part.text ?? "")
+          .join("") ?? "";
+      const parsed = parseQuestions(text, surahName);
+      if (parsed) {
+        writeCache(cacheKey, parsed);
+        return parsed;
+      }
+      return cachedOrFallback(cacheKey, surahName, translations);
+    } catch {
+      return cachedOrFallback(cacheKey, surahName, translations);
+    } finally {
+      pendingRequests.delete(cacheKey);
     }
-    const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    const match = text.match(/\[[\s\S]*?\]/);
-    if (!match) return cachedOrFallback(surahName, translations);
-    const qs = JSON.parse(match[0]) as ReflectionQuestion[];
-    if (
-      qs.length >= 2 &&
-      qs[0].options?.length === 4 &&
-      typeof qs[0].correct === "number"
-    ) {
-      writeCache(surahName, [qs[0], qs[1]]);
-      return [qs[0], qs[1]];
-    }
-    return cachedOrFallback(surahName, translations);
-  } catch {
-    return cachedOrFallback(surahName, translations);
-  }
+  })();
+
+  pendingRequests.set(cacheKey, request);
+  return request;
 }
 
 function cachedOrFallback(
+  cacheKey: string,
   surahName: string,
   translations: string[],
 ): [ReflectionQuestion, ReflectionQuestion] {
-  const cached = readCache(surahName);
+  const cached = readCache(cacheKey);
   return cached ?? fallback(surahName, translations);
 }
 
 function readCache(
-  surahName: string,
+  cacheKey: string,
 ): [ReflectionQuestion, ReflectionQuestion] | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Record<string, ReflectionQuestion[]>;
-    const qs = parsed[surahName];
+    const qs = parsed[cacheKey];
     if (!qs || qs.length < 2) return null;
     return [qs[0], qs[1]];
   } catch {
@@ -95,7 +117,7 @@ function readCache(
 }
 
 function writeCache(
-  surahName: string,
+  cacheKey: string,
   questions: [ReflectionQuestion, ReflectionQuestion],
 ) {
   try {
@@ -103,9 +125,61 @@ function writeCache(
     const parsed = raw
       ? (JSON.parse(raw) as Record<string, ReflectionQuestion[]>)
       : {};
-    parsed[surahName] = questions;
+    parsed[cacheKey] = questions;
     localStorage.setItem(CACHE_KEY, JSON.stringify(parsed));
   } catch {}
+}
+
+function parseQuestions(
+  text: string,
+  surahName: string,
+): [ReflectionQuestion, ReflectionQuestion] | null {
+  const cleaned = text
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
+  const candidates = [cleaned, cleaned.match(/\[[\s\S]*\]/)?.[0] ?? ""];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    try {
+      const parsed = JSON.parse(candidate) as ReflectionQuestion[];
+      if (
+        parsed.length >= 2 &&
+        parsed.every(
+          (q) =>
+            typeof q.question === "string" &&
+            Array.isArray(q.options) &&
+            q.options.length === 4 &&
+            typeof q.correct === "number",
+        )
+      ) {
+        return [
+          humaniseQuestion(parsed[0], surahName),
+          humaniseQuestion(parsed[1], surahName),
+        ];
+      }
+    } catch {}
+  }
+  return null;
+}
+
+function humaniseQuestion(
+  question: ReflectionQuestion,
+  surahName: string,
+): ReflectionQuestion {
+  return {
+    ...question,
+    question: humanizeNoorainQuestion(question.question, surahName),
+    options: question.options.map((option) => option.trim()),
+  };
+}
+
+function hashText(text: string) {
+  let hash = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+  }
+  return hash.toString(36);
 }
 
 function fallback(
