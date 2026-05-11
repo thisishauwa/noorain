@@ -5,13 +5,15 @@
 
 import { useState, useEffect } from "react";
 import { AppProvider, useAppContext } from "./lib/store";
-import { AuthProvider } from "./lib/authContext";
+import { AuthProvider, useAuth, isGuestMode } from "./lib/authContext";
 import { Home } from "./screens/Home";
 import { Browser } from "./screens/Browser";
 import { Reader } from "./screens/Reader";
+import { Landing } from "./screens/Landing";
 
 function MainApp() {
   const { streak, evaluateStreak, bookmark } = useAppContext();
+  const { accessToken, isReady, isConnecting } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<
     "home" | "browser" | "reader"
   >("home");
@@ -48,6 +50,14 @@ function MainApp() {
     window.addEventListener("keydown", handleReset);
     return () => window.removeEventListener("keydown", handleReset);
   }, []);
+
+  if (!isReady || isConnecting) {
+    return <Landing />;
+  }
+
+  if (!accessToken && !isGuestMode()) {
+    return <Landing />;
+  }
 
   return (
     <div className="min-h-dvh bg-white flex justify-center font-sans antialiased text-gray-800">

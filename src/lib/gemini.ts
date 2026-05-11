@@ -66,6 +66,8 @@ Return ONLY valid JSON:
         }),
       });
       if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        console.error("[Gemini]", res.status, JSON.stringify(errBody));
         return cachedOrFallback(cacheKey, surahName, translations);
       }
       const data = await res.json();
