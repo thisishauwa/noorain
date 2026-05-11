@@ -75,10 +75,19 @@ export function Reader({
   const [showSurahPicker, setShowSurahPicker] = useState(false);
   const [playAllActive, setPlayAllActive] = useState(false);
   const playAllRef = useRef(false);
+  const answerAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
+  };
+
+  const queueAdvance = (nextStep: number) => {
+    if (answerAdvanceRef.current) clearTimeout(answerAdvanceRef.current);
+    answerAdvanceRef.current = setTimeout(() => {
+      setGoodbyeStep(nextStep);
+      answerAdvanceRef.current = null;
+    }, 450);
   };
 
   const handleMenuClick = async (action: string, verse: Verse) => {
@@ -751,7 +760,11 @@ export function Reader({
                         <button
                           key={i}
                           onClick={() => {
-                            if (!answered) setReflectionA1(i);
+                            if (!answered) {
+                              setReflectionA1(i);
+                              if (i === reflectionQs[0].correct)
+                                queueAdvance(2);
+                            }
                           }}
                           className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
                             !answered
@@ -790,7 +803,7 @@ export function Reader({
                       }`}
                     >
                       {reflectionA1 === reflectionQs[0].correct
-                        ? "Correct! Well done."
+                        ? ""
                         : `Not quite — the answer is: "${reflectionQs[0].options[reflectionQs[0].correct]}"`}
                     </p>
                   )}
@@ -800,7 +813,11 @@ export function Reader({
                     className="btn-duo-primary w-full disabled:opacity-40"
                   >
                     <TickSquare size="20" color="white" variant="Bold" />
-                    {reflectionA1 === null ? "Pick one to continue" : "Next"}
+                    {reflectionA1 === null
+                      ? "Pick one to continue"
+                      : reflectionA1 === reflectionQs[0].correct
+                        ? "Correct"
+                        : "Next"}
                   </button>
                 </div>
               )}
@@ -822,7 +839,11 @@ export function Reader({
                         <button
                           key={i}
                           onClick={() => {
-                            if (!answered) setReflectionA2(i);
+                            if (!answered) {
+                              setReflectionA2(i);
+                              if (i === reflectionQs[1].correct)
+                                queueAdvance(3);
+                            }
                           }}
                           className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
                             !answered
@@ -861,7 +882,7 @@ export function Reader({
                       }`}
                     >
                       {reflectionA2 === reflectionQs[1].correct
-                        ? "Correct! MashaAllah."
+                        ? ""
                         : `Not quite — the answer is: "${reflectionQs[1].options[reflectionQs[1].correct]}"`}
                     </p>
                   )}
@@ -873,7 +894,9 @@ export function Reader({
                     <TickSquare size="20" color="white" variant="Bold" />
                     {reflectionA2 === null
                       ? "Pick one to continue"
-                      : "Continue"}
+                      : reflectionA2 === reflectionQs[1].correct
+                        ? "Correct"
+                        : "Continue"}
                   </button>
                 </div>
               )}

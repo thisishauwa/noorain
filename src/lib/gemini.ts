@@ -2,7 +2,7 @@ import { humanizeNoorainQuestion } from "./humaniser";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 const CACHE_KEY = "noorain_reflection_cache_v3";
 const pendingRequests = new Map<
   string,
