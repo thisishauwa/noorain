@@ -1,0 +1,126 @@
+@import url("https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Nunito:wght@400;600;700;800;900&display=swap");
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-arabic: "Amiri", serif;
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+
+  /* Warm background palette */
+  --color-warm-bg: #fbf7ef;
+  --color-warm-card: #ffffff;
+  --color-warm-sand: #f0e8d5;
+
+  /* Text */
+  --color-warm-text: #1a1209;
+  --color-warm-muted: #8b7355;
+
+  /* Brand interactive */
+  --color-brand: #2a18d9;
+  --color-brand-dark: #1a0d99;
+  --color-brand-light: #eeeeff;
+
+  /* Sadaqah */
+  --color-sadaqah: #15803d;
+  --color-sadaqah-light: #dcfce7;
+
+  /* Keep legacy aliases for Reader/Browser until fully migrated */
+  --color-brand-blue: #2a18d9;
+  --color-brand-blue-dark: #1a0d99;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@font-face {
+  font-family: "Feather Bold";
+  src: url("/font/Feather Bold.woff") format("woff");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  background-color: #ffffff;
+  color: var(--color-warm-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+@utility pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@utility pt-safe {
+  padding-top: max(0px, env(safe-area-inset-top));
+}
+
+.mask-image-bottom-fade {
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+}
+
+@layer utilities {
+  .font-display {
+    font-family: "Feather Bold", var(--font-sans);
+  }
+}
+
+@layer components {
+  .card-duo {
+    background-color: white;
+    border: 2px solid #e5e5e5;
+    border-bottom: 4px solid #e5e5e5;
+    border-radius: 1.25rem;
+  }
+
+  .btn-duo-primary {
+    background-color: #58cc02;
+    color: white;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 15px;
+    padding: 1rem;
+    border-radius: 1rem;
+    border-bottom: 4px solid #58a700;
+    transition: all 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .btn-duo-primary:active {
+    border-bottom-width: 0px;
+    transform: translateY(4px);
+    margin-bottom: 4px;
+  }
+
+  .btn-duo-secondary {
+    background-color: white;
+    color: #afafaf;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 15px;
+    padding: 1rem;
+    border-radius: 1rem;
+    border: 2px solid #e5e5e5;
+    border-bottom: 4px solid #e5e5e5;
+    transition: all 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .btn-duo-secondary:hover {
+    background-color: #f7f7f7;
+  }
+  .btn-duo-secondary:active {
+    border-bottom-width: 2px;
+    transform: translateY(2px);
+    margin-bottom: 2px;
+  }
+}
