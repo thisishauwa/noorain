@@ -2,6 +2,8 @@ const USER_API_BASE = "https://apis.quran.foundation/auth/v1";
 const CLIENT_ID = import.meta.env.VITE_QURAN_CLIENT_ID as string;
 const AUTH_TOKEN = import.meta.env.VITE_QURAN_AUTH_TOKEN as string;
 
+let syncDisabled = import.meta.env.DEV || !CLIENT_ID || !AUTH_TOKEN;
+
 // ── User API calls (fire-and-forget, fail silently) ───────────────────────────
 
 function userHeaders() {
@@ -13,13 +15,23 @@ function userHeaders() {
   };
 }
 
+async function fireAndForget(path: string, body: Record<string, unknown>) {
+  if (syncDisabled) return;
+  try {
+    const res = await fetch(`${USER_API_BASE}${path}`, {
+      method: "POST",
+      headers: userHeaders(),
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) syncDisabled = true;
+  } catch {
+    syncDisabled = true;
+  }
+}
+
 /** Track current reading position for "Continue reading" resume UX */
 export function syncReadingSession(chapterNumber: number, verseNumber: number) {
-  fetch(`${USER_API_BASE}/reading-sessions`, {
-    method: "POST",
-    headers: userHeaders(),
-    body: JSON.stringify({ chapterNumber, verseNumber }),
-  }).catch(() => {});
+  void fireAndForget("/reading-sessions", { chapterNumber, verseNumber });
 }
 
 /**
@@ -28,30 +40,22 @@ export function syncReadingSession(chapterNumber: number, verseNumber: number) {
  */
 export function syncActivityDay(ranges: string, seconds: number) {
   if (!ranges) return;
-  fetch(`${USER_API_BASE}/activity-days`, {
-    method: "POST",
-    headers: userHeaders(),
-    body: JSON.stringify({
-      type: "QURAN",
-      seconds,
-      ranges,
-      mushafId: 4,
-      date: new Date().toISOString().split("T")[0],
-    }),
-  }).catch(() => {});
+  void fireAndForget("/activity-days", {
+    type: "QURAN",
+    seconds,
+    ranges,
+    mushafId: 4,
+    date: new Date().toISOString().split("T")[0],
+  });
 }
 
 /** Set the cloud reading bookmark (isReading singleton) */
 export function syncBookmark(chapterNumber: number, verseNumber: number) {
-  fetch(`${USER_API_BASE}/bookmarks`, {
-    method: "POST",
-    headers: userHeaders(),
-    body: JSON.stringify({
-      chapterNumber,
-      type: "ayah",
-      verseNumber,
-      isReading: true,
-      mushafId: 4,
-    }),
-  }).catch(() => {});
+  void fireAndForget("/bookmarks", {
+    chapterNumber,
+    type: "ayah",
+    verseNumber,
+    isReading: true,
+    mushafId: 4,
+  });
 }

@@ -27,6 +27,8 @@ import {
   VolumeHigh,
 } from "iconsax-react";
 
+const OPTION_LETTERS = ["A", "B", "C", "D"];
+
 export function Reader({
   initialPage = 1,
   onNavigate,
@@ -692,7 +694,7 @@ export function Reader({
             className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center px-6 overflow-y-auto"
           >
             {/* Noorain character */}
-            <div className="w-[50vw] max-w-[260px] aspect-square relative flex items-center justify-center overflow-visible mb-4">
+            <div className="w-[68vw] max-w-[320px] aspect-square relative flex items-center justify-center overflow-visible mb-2">
               <motion.img
                 key={goodbyeStep}
                 initial={{ scale: 0.85, opacity: 0, y: 16 }}
@@ -723,11 +725,11 @@ export function Reader({
                   {goodbyeStep === 1 &&
                     (reflectionQs
                       ? reflectionQs[0].question
-                      : "SubhanAllah — what stood out to you from what you read?")}
+                      : "I was reading that with you... wait, let me ask you something small.")}
                   {goodbyeStep === 2 &&
                     (reflectionQs
                       ? reflectionQs[1].question
-                      : "What's one thing from today's reading you'd like to carry with you?")}
+                      : "Hmm okay, one more — I want to make sure I understood it with you.")}
                   {goodbyeStep === 3 &&
                     (happinessGained > 0
                       ? `JazakAllah Khair. +${happinessGained} happiness — say "Assalam Alaikum" to leave.`
@@ -740,7 +742,7 @@ export function Reader({
               {/* Step 1 — Q1 options */}
               {goodbyeStep === 1 && reflectionQs && (
                 <div className="w-full flex flex-col gap-3">
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-col gap-2 w-full">
                     {reflectionQs[0].options.map((opt, i) => {
                       const answered = reflectionA1 !== null;
                       const isCorrect = i === reflectionQs[0].correct;
@@ -751,17 +753,30 @@ export function Reader({
                           onClick={() => {
                             if (!answered) setReflectionA1(i);
                           }}
-                          className={`px-3 py-3 rounded-2xl border-2 text-sm font-bold text-left leading-snug transition-all ${
+                          className={`w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-bold text-left leading-snug transition-all ${
                             !answered
-                              ? "border-gray-200 border-b-4 bg-white text-gray-700 hover:border-[#1CB0F6]/40 active:scale-95"
+                              ? "bg-white border-2 border-gray-200 border-b-4 text-gray-700 hover:border-[#1CB0F6]/40 active:scale-95"
                               : isCorrect
-                                ? "border-[#58CC02] bg-[#58CC02]/10 text-[#58CC02] border-b-4"
+                                ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
                                 : isSelected
-                                  ? "border-red-400 bg-red-50 text-red-500 border-b-4"
-                                  : "border-gray-100 bg-gray-50 text-gray-300 border-b-2"
+                                  ? "bg-[#1CB0F6] border-2 border-[#1CB0F6] border-b-4 text-white"
+                                  : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
                           }`}
                         >
-                          {opt}
+                          <span
+                            className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center font-black ${
+                              !answered
+                                ? "bg-[#1CB0F6] text-white"
+                                : isCorrect
+                                  ? "bg-[#58CC02] text-white"
+                                  : isSelected
+                                    ? "bg-white/20 text-white"
+                                    : "bg-gray-200 text-gray-500"
+                            }`}
+                          >
+                            {OPTION_LETTERS[i]}
+                          </span>
+                          <span className="flex-1">{opt}</span>
                         </button>
                       );
                     })}
@@ -798,7 +813,7 @@ export function Reader({
               {/* Step 2 — Q2 options */}
               {goodbyeStep === 2 && reflectionQs && (
                 <div className="w-full flex flex-col gap-3">
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-col gap-2 w-full">
                     {reflectionQs[1].options.map((opt, i) => {
                       const answered = reflectionA2 !== null;
                       const isCorrect = i === reflectionQs[1].correct;
@@ -809,17 +824,30 @@ export function Reader({
                           onClick={() => {
                             if (!answered) setReflectionA2(i);
                           }}
-                          className={`px-3 py-3 rounded-2xl border-2 text-sm font-bold text-left leading-snug transition-all ${
+                          className={`w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-bold text-left leading-snug transition-all ${
                             !answered
-                              ? "border-gray-200 border-b-4 bg-white text-gray-700 hover:border-[#1CB0F6]/40 active:scale-95"
+                              ? "bg-white border-2 border-gray-200 border-b-4 text-gray-700 hover:border-[#1CB0F6]/40 active:scale-95"
                               : isCorrect
-                                ? "border-[#58CC02] bg-[#58CC02]/10 text-[#58CC02] border-b-4"
+                                ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
                                 : isSelected
-                                  ? "border-red-400 bg-red-50 text-red-500 border-b-4"
-                                  : "border-gray-100 bg-gray-50 text-gray-300 border-b-2"
+                                  ? "bg-[#1CB0F6] border-2 border-[#1CB0F6] border-b-4 text-white"
+                                  : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
                           }`}
                         >
-                          {opt}
+                          <span
+                            className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center font-black ${
+                              !answered
+                                ? "bg-[#1CB0F6] text-white"
+                                : isCorrect
+                                  ? "bg-[#58CC02] text-white"
+                                  : isSelected
+                                    ? "bg-white/20 text-white"
+                                    : "bg-gray-200 text-gray-500"
+                            }`}
+                          >
+                            {OPTION_LETTERS[i]}
+                          </span>
+                          <span className="flex-1">{opt}</span>
                         </button>
                       );
                     })}
