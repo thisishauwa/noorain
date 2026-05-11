@@ -2,7 +2,7 @@ import { humanizeNoorainQuestion } from "./humaniser";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent";
 const CACHE_KEY = "noorain_reflection_cache_v3";
 const pendingRequests = new Map<
   string,
@@ -53,7 +53,7 @@ Return ONLY valid JSON:
 
   const request = (async () => {
     try {
-      const res = await fetch(`${ENDPOINT}?key=${API_KEY}`, {
+      const res = await fetchWithRetry(`${ENDPOINT}?key=${API_KEY}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -66,9 +66,7 @@ Return ONLY valid JSON:
         }),
       });
       if (!res.ok) {
-        if (res.status === 429)
-          return cachedOrFallback(cacheKey, surahName, translations);
-        return fallback(surahName, translations);
+        return cachedOrFallback(cacheKey, surahName, translations);
       }
       const data = await res.json();
       const text =
@@ -90,6 +88,20 @@ Return ONLY valid JSON:
 
   pendingRequests.set(cacheKey, request);
   return request;
+}
+
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  attempts = 3,
+): Promise<Response> {
+  for (let i = 0; i < attempts; i++) {
+    const res = await fetch(url, init);
+    if (res.status !== 429 || i === attempts - 1) return res;
+    const retryAfter = Number(res.headers.get("Retry-After") ?? 0);
+    await new Promise((r) => setTimeout(r, (retryAfter || 2 ** i) * 1000));
+  }
+  return fetch(url, init);
 }
 
 function cachedOrFallback(
