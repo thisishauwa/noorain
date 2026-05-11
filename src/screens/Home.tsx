@@ -27,8 +27,8 @@ export function Home({
   const daysUntilFriday = (() => {
     const d = (5 - new Date().getDay() + 7) % 7;
     if (d === 0) return "today";
-    if (d === 1) return "tomorrow";
-    return `in ${d} days`;
+    if (d === 1) return "tmrw";
+    return `${d}d`;
   })();
 
   const getGreetingText = () => {
@@ -64,7 +64,7 @@ export function Home({
       <header className="flex flex-col gap-4 px-4 py-4 md:py-6 max-w-2xl mx-auto w-full pt-[max(1rem,env(safe-area-inset-top))]">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl md:text-4xl font-display text-gray-800 tracking-tight">
+            <h1 className="text-xl md:text-3xl font-display text-gray-800 tracking-tight">
               Assalam Alaikum
             </h1>
             <p className="text-sm md:text-base font-bold text-gray-400 mt-0.5">
@@ -78,10 +78,10 @@ export function Home({
                 {streak.current}
               </span>
             </div>
-            <div className="flex items-center bg-red-50 border-2 border-red-200 rounded-full px-3 py-1.5">
-              <span className="text-xs font-extrabold text-[#FF4B4B]">
-                {sadaqah.meals}{" "}
-                {sadaqah.meals === 1 ? "meal donated" : "meals donated"}
+            <div className="flex items-center bg-red-50 border-2 border-red-200 rounded-full px-3 py-1.5 whitespace-nowrap">
+              <span className="text-xs font-extrabold text-[#FF4B4B] whitespace-nowrap">
+                {sadaqah.meals}
+                {sadaqah.meals === 1 ? " meal" : " meals"}
               </span>
             </div>
           </div>
@@ -107,10 +107,10 @@ export function Home({
               }
             >
               {noor.moodScore >= 80
-                ? `${noor.moodScore}% · donating ${daysUntilFriday}`
+                ? `${noor.moodScore}% · ${daysUntilFriday}`
                 : noor.moodScore >= 50
-                  ? `${noor.moodScore}% · donates ${daysUntilFriday}`
-                  : `${noor.moodScore}% · keep reading`}
+                  ? `${noor.moodScore}% · fri ${daysUntilFriday}`
+                  : `${noor.moodScore}% · read more`}
             </span>
           </div>
           <div className="h-4 bg-gray-200 rounded-full relative overflow-hidden">

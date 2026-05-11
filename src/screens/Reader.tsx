@@ -722,11 +722,11 @@ export function Reader({
                 <p className="text-base font-bold text-gray-800 leading-snug">
                   {goodbyeStep === 1 &&
                     (reflectionQs
-                      ? reflectionQs[0]
+                      ? reflectionQs[0].question
                       : "SubhanAllah — what stood out to you from what you read?")}
                   {goodbyeStep === 2 &&
                     (reflectionQs
-                      ? reflectionQs[1]
+                      ? reflectionQs[1].question
                       : "What's one thing from today's reading you'd like to carry with you?")}
                   {goodbyeStep === 3 &&
                     (happinessGained > 0
@@ -741,29 +741,51 @@ export function Reader({
               {goodbyeStep === 1 && reflectionQs && (
                 <div className="w-full flex flex-col gap-3">
                   <div className="grid grid-cols-2 gap-2">
-                    {reflectionQs[0].options.map((opt, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setReflectionA1(i)}
-                        className={`px-3 py-3 rounded-2xl border-2 text-sm font-bold text-left leading-snug transition-all active:scale-95 ${
-                          reflectionA1 === i
-                            ? "border-[#1CB0F6] bg-[#1CB0F6]/10 text-[#1CB0F6] border-b-4"
-                            : "border-gray-200 border-b-4 bg-white text-gray-700 hover:border-[#1CB0F6]/40"
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
+                    {reflectionQs[0].options.map((opt, i) => {
+                      const answered = reflectionA1 !== null;
+                      const isCorrect = i === reflectionQs[0].correct;
+                      const isSelected = reflectionA1 === i;
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            if (!answered) setReflectionA1(i);
+                          }}
+                          className={`px-3 py-3 rounded-2xl border-2 text-sm font-bold text-left leading-snug transition-all ${
+                            !answered
+                              ? "border-gray-200 border-b-4 bg-white text-gray-700 hover:border-[#1CB0F6]/40 active:scale-95"
+                              : isCorrect
+                                ? "border-[#58CC02] bg-[#58CC02]/10 text-[#58CC02] border-b-4"
+                                : isSelected
+                                  ? "border-red-400 bg-red-50 text-red-500 border-b-4"
+                                  : "border-gray-100 bg-gray-50 text-gray-300 border-b-2"
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      );
+                    })}
                   </div>
+                  {reflectionA1 !== null && (
+                    <p
+                      className={`text-xs font-bold text-center ${
+                        reflectionA1 === reflectionQs[0].correct
+                          ? "text-[#58CC02]"
+                          : "text-red-500"
+                      }`}
+                    >
+                      {reflectionA1 === reflectionQs[0].correct
+                        ? "Correct! Well done."
+                        : `Not quite — the answer is: "${reflectionQs[0].options[reflectionQs[0].correct]}"`}
+                    </p>
+                  )}
                   <button
                     onClick={() => setGoodbyeStep(2)}
                     disabled={reflectionA1 === null}
                     className="btn-duo-primary w-full disabled:opacity-40"
                   >
                     <TickSquare size="20" color="white" variant="Bold" />
-                    {reflectionA1 === null
-                      ? "Pick one to continue"
-                      : "Continue"}
+                    {reflectionA1 === null ? "Pick one to continue" : "Next"}
                   </button>
                 </div>
               )}
@@ -777,20 +799,44 @@ export function Reader({
               {goodbyeStep === 2 && reflectionQs && (
                 <div className="w-full flex flex-col gap-3">
                   <div className="grid grid-cols-2 gap-2">
-                    {reflectionQs[1].options.map((opt, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setReflectionA2(i)}
-                        className={`px-3 py-3 rounded-2xl border-2 text-sm font-bold text-left leading-snug transition-all active:scale-95 ${
-                          reflectionA2 === i
-                            ? "border-[#1CB0F6] bg-[#1CB0F6]/10 text-[#1CB0F6] border-b-4"
-                            : "border-gray-200 border-b-4 bg-white text-gray-700 hover:border-[#1CB0F6]/40"
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
+                    {reflectionQs[1].options.map((opt, i) => {
+                      const answered = reflectionA2 !== null;
+                      const isCorrect = i === reflectionQs[1].correct;
+                      const isSelected = reflectionA2 === i;
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            if (!answered) setReflectionA2(i);
+                          }}
+                          className={`px-3 py-3 rounded-2xl border-2 text-sm font-bold text-left leading-snug transition-all ${
+                            !answered
+                              ? "border-gray-200 border-b-4 bg-white text-gray-700 hover:border-[#1CB0F6]/40 active:scale-95"
+                              : isCorrect
+                                ? "border-[#58CC02] bg-[#58CC02]/10 text-[#58CC02] border-b-4"
+                                : isSelected
+                                  ? "border-red-400 bg-red-50 text-red-500 border-b-4"
+                                  : "border-gray-100 bg-gray-50 text-gray-300 border-b-2"
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      );
+                    })}
                   </div>
+                  {reflectionA2 !== null && (
+                    <p
+                      className={`text-xs font-bold text-center ${
+                        reflectionA2 === reflectionQs[1].correct
+                          ? "text-[#58CC02]"
+                          : "text-red-500"
+                      }`}
+                    >
+                      {reflectionA2 === reflectionQs[1].correct
+                        ? "Correct! MashaAllah."
+                        : `Not quite — the answer is: "${reflectionQs[1].options[reflectionQs[1].correct]}"`}
+                    </p>
+                  )}
                   <button
                     onClick={() => setGoodbyeStep(3)}
                     disabled={reflectionA2 === null}
