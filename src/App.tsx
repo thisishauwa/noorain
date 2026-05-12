@@ -38,11 +38,11 @@ function MainApp() {
     const handleReset = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "d") {
         [
-          "rawdah_bookmark",
-          "rawdah_streak",
-          "rawdah_completed_juz",
-          "rawdah_sadaqah",
-          "rawdah_noor",
+          "noorain_bookmark",
+          "noorain_streak",
+          "noorain_completed_juz",
+          "noorain_sadaqah",
+          "noorain_noor",
         ].forEach((k) => localStorage.removeItem(k));
         window.location.reload();
       }

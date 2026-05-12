@@ -159,7 +159,7 @@ export function Home({
             onClick={() => onNavigate("reader")}
             className="btn-duo-primary flex-2"
           >
-            {bookmark ? "Continue Reading" : "Read with Noor"}
+            {bookmark ? "Continue Reading" : "Read with Noorain"}
           </button>
         </div>
         <p className="text-center text-[11px] text-gray-400 font-extrabold uppercase tracking-widest mt-3">

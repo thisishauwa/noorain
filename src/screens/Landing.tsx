@@ -50,10 +50,10 @@ export function Landing() {
             transition={{ delay: 0.15, duration: 0.4 }}
           >
             <h1 className="font-display text-5xl text-gray-800 tracking-tight leading-none">
-              روضة
+              نورين
             </h1>
             <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#1CB0F6] mt-1">
-              Rawdah · Your Quran Companion
+              Noorain · Your Quran Companion
             </p>
           </motion.div>
         </div>

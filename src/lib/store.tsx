@@ -87,21 +87,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    load("rawdah_bookmark", setBookmark, initialState.bookmark);
-    load("rawdah_streak", setStreak, initialState.streak);
-    load("rawdah_completed_juz", setCompletedJuz, initialState.completedJuz);
-    load("rawdah_sadaqah", setSadaqah, initialState.sadaqah);
-    load("rawdah_noor", setNoor, initialState.noor);
+    load("noorain_bookmark", setBookmark, initialState.bookmark);
+    load("noorain_streak", setStreak, initialState.streak);
+    load("noorain_completed_juz", setCompletedJuz, initialState.completedJuz);
+    load("noorain_sadaqah", setSadaqah, initialState.sadaqah);
+    load("noorain_noor", setNoor, initialState.noor);
     setIsLoaded(true);
   }, []);
 
   useEffect(() => {
     if (!isLoaded) return;
-    localStorage.setItem("rawdah_bookmark", JSON.stringify(bookmark));
-    localStorage.setItem("rawdah_streak", JSON.stringify(streak));
-    localStorage.setItem("rawdah_completed_juz", JSON.stringify(completedJuz));
-    localStorage.setItem("rawdah_sadaqah", JSON.stringify(sadaqah));
-    localStorage.setItem("rawdah_noor", JSON.stringify(noor));
+    localStorage.setItem("noorain_bookmark", JSON.stringify(bookmark));
+    localStorage.setItem("noorain_streak", JSON.stringify(streak));
+    localStorage.setItem("noorain_completed_juz", JSON.stringify(completedJuz));
+    localStorage.setItem("noorain_sadaqah", JSON.stringify(sadaqah));
+    localStorage.setItem("noorain_noor", JSON.stringify(noor));
   }, [bookmark, streak, completedJuz, sadaqah, noor, isLoaded]);
 
   const updateBookmark = (newBookmark: Bookmark) => setBookmark(newBookmark);

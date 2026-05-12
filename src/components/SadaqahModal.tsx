@@ -55,8 +55,8 @@ export function SadaqahModal({ show, meals, onClose }: Props) {
               Noorain donated on your behalf.
             </h2>
             <p className="text-white/60 text-sm font-semibold mb-8 leading-relaxed">
-              {meals} meal{meals !== 1 ? "s" : ""} given to children in need —
-              in your name.
+              {meals} meal{meals !== 1 ? "s" : ""} given to children in need, in
+              your name.
             </p>
 
             {/* Donor feed */}
