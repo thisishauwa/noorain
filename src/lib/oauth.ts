@@ -49,7 +49,7 @@ export async function initiateLogin(): Promise<void> {
   sessionStorage.setItem(VERIFIER_KEY, verifier);
   sessionStorage.setItem(STATE_KEY, state);
 
-  const redirectUri = `${window.location.origin}/`;
+  const redirectUri = `${window.location.origin}/oauth/callback`;
   const url = new URL(`${QF_AUTH_BASE}/oauth2/auth`);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("client_id", CLIENT_ID);
@@ -81,7 +81,7 @@ export async function exchangeCallback(
       body: JSON.stringify({
         code,
         codeVerifier: verifier,
-        redirectUri: `${window.location.origin}/`,
+        redirectUri: `${window.location.origin}/oauth/callback`,
       }),
     });
     if (!res.ok) return null;
