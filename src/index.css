@@ -35,8 +35,28 @@
 
 @font-face {
   font-family: "Feather Bold";
-  src: url("/font/Feather Bold.woff") format("woff");
+  src: url("/fonts/Feather Bold.woff") format("woff");
   font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "PPMondwest";
+  src:
+    url("/fonts/PPMondwest-Regular.woff2") format("woff2"),
+    url("/fonts/PPMondwest-Regular.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SelfModern";
+  src:
+    url("/fonts/SelfModern-Regular.woff2") format("woff2"),
+    url("/fonts/SelfModern-Regular.woff") format("woff");
+  font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
@@ -44,7 +64,7 @@
 body {
   background-color: #ffffff;
   color: var(--color-warm-text);
-  font-family: var(--font-sans);
+  font-family: "SelfModern", var(--font-sans);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
 }
@@ -65,6 +85,12 @@ body {
 @layer utilities {
   .font-display {
     font-family: "Feather Bold", var(--font-sans);
+  }
+  .font-mondwest {
+    font-family: "PPMondwest", serif;
+  }
+  .font-selfmodern {
+    font-family: "SelfModern", serif;
   }
 }
 
