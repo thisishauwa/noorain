@@ -1,10 +1,10 @@
-@import url("https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Nunito:wght@400;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap");
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
 @theme {
   --font-arabic: "Amiri", serif;
-  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Figtree", system-ui, sans-serif;
 
   /* Warm background palette */
   --color-warm-bg: #fbf7ef;
@@ -35,7 +35,7 @@
 
 @font-face {
   font-family: "Feather Bold";
-  src: url("/fonts/Feather Bold.woff") format("woff");
+  src: url("/font/Feather Bold.woff") format("woff");
   font-weight: bold;
   font-style: normal;
   font-display: swap;
@@ -43,9 +43,7 @@
 
 @font-face {
   font-family: "PPMondwest";
-  src:
-    url("/fonts/PPMondwest-Regular.woff2") format("woff2"),
-    url("/fonts/PPMondwest-Regular.woff") format("woff");
+  src: url("/font/ppmondwest-regular.otf") format("opentype");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -53,9 +51,7 @@
 
 @font-face {
   font-family: "SelfModern";
-  src:
-    url("/fonts/SelfModern-Regular.woff2") format("woff2"),
-    url("/fonts/SelfModern-Regular.woff") format("woff");
+  src: url("/font/Self Modern Regular.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -64,7 +60,7 @@
 body {
   background-color: #ffffff;
   color: var(--color-warm-text);
-  font-family: "SelfModern", var(--font-sans);
+  font-family: "Figtree", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
 }

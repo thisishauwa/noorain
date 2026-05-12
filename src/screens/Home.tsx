@@ -3,8 +3,9 @@ import { getNoorMood } from "../lib/noor";
 import { NoorCharacter } from "../components/NoorCharacter";
 import { SadaqahModal } from "../components/SadaqahModal";
 import { motion, AnimatePresence } from "motion/react";
-import { Flash, InfoCircle } from "iconsax-react";
+import { Flash, InfoCircle, More } from "iconsax-react";
 import { useState, useEffect, useRef } from "react";
+import { useAuth } from "../lib/authContext";
 
 export function Home({
   onNavigate,
@@ -12,8 +13,10 @@ export function Home({
   onNavigate: (screen: "home" | "browser" | "reader") => void;
 }) {
   const { streak, sadaqah, noor, bookmark } = useAppContext();
+  const { logout } = useAuth();
   const [showSadaqah, setShowSadaqah] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const moodInfo = getNoorMood(noor.moodScore);
   const prevMealsRef = useRef(sadaqah.meals);
 
@@ -63,13 +66,15 @@ export function Home({
       {/* ── Top Bar ── */}
       <header className="flex flex-col gap-4 px-4 py-4 md:py-6 max-w-2xl mx-auto w-full pt-[max(1rem,env(safe-area-inset-top))]">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl md:text-3xl font-display text-gray-800 tracking-tight">
-              Assalam Alaikum
-            </h1>
-            <p className="text-sm md:text-base font-bold text-gray-400 mt-0.5">
-              {getGreetingText()}
-            </p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-xl md:text-3xl font-display text-gray-800 tracking-tight">
+                Assalam Alaikum
+              </h1>
+              <p className="text-sm md:text-base font-bold text-gray-400 mt-0.5">
+                {getGreetingText()}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-10 flex items-center gap-1.5 bg-orange-50 border-2 border-orange-200 rounded-full px-3">
@@ -78,11 +83,47 @@ export function Home({
                 {streak.current}
               </span>
             </div>
-            <div className="h-10 flex items-center bg-red-50 border-2 border-red-200 rounded-full px-3 whitespace-nowrap">
+            <div className="h-10 items-center bg-red-50 border-2 border-red-200 rounded-full px-3 whitespace-nowrap hidden sm:flex">
               <span className="text-xs font-extrabold text-[#FF4B4B] whitespace-nowrap">
                 {sadaqah.meals}
                 {sadaqah.meals === 1 ? " meal" : " meals"}
               </span>
+            </div>
+
+            <div className="relative">
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors ml-1"
+              >
+                <More size="20" color="#6B7280" />
+              </button>
+
+              <AnimatePresence>
+                {showMenu && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowMenu(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                      className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border-2 border-gray-100 p-2 z-50 origin-top-right"
+                    >
+                      <button
+                        onClick={() => {
+                          setShowMenu(false);
+                          logout();
+                        }}
+                        className="w-full text-left px-4 py-3 rounded-xl text-red-500 font-bold hover:bg-red-50 transition-colors"
+                      >
+                        Sign out
+                      </button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>

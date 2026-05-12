@@ -4,7 +4,7 @@ import { useAuth } from "../lib/authContext";
 
 const SLIDES = [
   {
-    title: "نورين",
+    title: "Noorain",
     text: "Meet your Quran companion.\nRead, reflect, and grow your daily habit.",
     img: "/noor/Waving.png",
     bg: "#EEF4FA",
@@ -19,7 +19,7 @@ const SLIDES = [
   },
   {
     title: "Real impact",
-    text: "For every milestone you reach, we donate to charity in your name.",
+    text: "Every Friday I'll make a real food donation to charity in your name.",
     img: "/noor/Hugs.png",
     bg: "#F0F7F4",
     cloud: "#E1EFE7",
@@ -50,6 +50,14 @@ export function Landing() {
     return () => document.removeEventListener("mousedown", onDown);
   }, [showStory]);
 
+  useEffect(() => {
+    if (showStory) return;
+    const interval = setInterval(() => {
+      setSlide((s) => (s + 1) % SLIDES.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [showStory]);
+
   if (isConnecting) {
     return (
       <div className="flex flex-col items-center justify-center min-h-dvh bg-white gap-5 px-6">
@@ -74,24 +82,24 @@ export function Landing() {
   const current = SLIDES[slide];
 
   return (
-    <div className="flex flex-col h-dvh bg-white font-selfmodern relative overflow-hidden px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+    <div className="flex flex-col h-dvh bg-white font-sans relative overflow-hidden px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <div className="relative flex flex-col items-center h-full max-w-sm mx-auto w-full justify-between gap-4">
         {/* Character Container (~2/3 screen) */}
         <motion.div
           animate={{ backgroundColor: current.bg }}
           transition={{ duration: 0.5 }}
-          className="w-full flex-[1.6] rounded-[2.5rem] relative overflow-hidden flex items-end justify-center pt-8"
+          className="w-full flex-[1.7] rounded-[2.5rem] relative flex flex-col items-center justify-end overflow-hidden pt-10"
         >
-          {/* Deco Clouds */}
+          {/* Deco Clouds (pill shapes) */}
           <motion.div
             animate={{ backgroundColor: current.cloud }}
             transition={{ duration: 0.5 }}
-            className="absolute top-[18%] left-[10%] w-28 h-8 rounded-full"
+            className="absolute top-[12%] left-[10%] w-32 h-10 rounded-full"
           />
           <motion.div
             animate={{ backgroundColor: current.cloud }}
             transition={{ duration: 0.5 }}
-            className="absolute top-[28%] left-[32%] w-16 h-5 rounded-full"
+            className="absolute top-[22%] left-[35%] w-20 h-7 rounded-full"
           />
 
           {/* Character */}
@@ -100,10 +108,11 @@ export function Landing() {
               key={slide}
               src={current.img}
               alt="Noorain"
-              className="w-full h-full object-contain relative z-10 scale-[1.25] origin-bottom mb-2"
-              initial={{ opacity: 0, x: 20, scale: 1.15 }}
-              animate={{ opacity: 1, x: 0, scale: 1.25 }}
-              exit={{ opacity: 0, x: -20, scale: 1.15 }}
+              className="w-[92%] object-contain relative z-10"
+              style={{ maxHeight: "85%" }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             />
           </AnimatePresence>
@@ -230,21 +239,21 @@ export function Landing() {
 
         {/* Buttons */}
         <motion.div
-          className="flex flex-col gap-3 w-full shrink-0 mt-2 font-selfmodern"
+          className="flex flex-col gap-3 w-full shrink-0 mt-2 font-sans"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.38 }}
         >
           <button
             onClick={() => login()}
-            className="w-full bg-[#1CB0F6] text-white font-bold text-[18px] rounded-2xl py-4 border-b-4 border-[#0e9fd8] active:border-b-0 active:translate-y-[2px] transition-transform flex items-center justify-center gap-2.5"
+            className="w-full bg-[#1CB0F6] text-white font-extrabold text-[16px] rounded-2xl py-4 border-b-4 border-[#0e9fd8] active:border-b-0 active:translate-y-[2px] transition-transform flex items-center justify-center gap-2.5 font-sans"
           >
             <QFLogo />
             Continue with Quran.com
           </button>
           <button
             onClick={continueAsGuest}
-            className="w-full bg-gray-100 text-gray-500 font-bold text-[17px] rounded-2xl py-3.5 hover:bg-gray-200 transition-colors"
+            className="w-full bg-gray-100 text-gray-500 font-extrabold text-[15px] rounded-2xl py-3.5 hover:bg-gray-200 transition-colors font-sans"
           >
             Read without an account
           </button>
