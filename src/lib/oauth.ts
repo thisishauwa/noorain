@@ -75,7 +75,7 @@ export async function exchangeCallback(
   sessionStorage.removeItem(STATE_KEY);
 
   try {
-    const res = await fetch("/.netlify/functions/qf-exchange", {
+    const res = await fetch("/api/qf-exchange", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
