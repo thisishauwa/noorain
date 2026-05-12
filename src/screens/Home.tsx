@@ -3,7 +3,7 @@ import { getNoorMood } from "../lib/noor";
 import { NoorCharacter } from "../components/NoorCharacter";
 import { SadaqahModal } from "../components/SadaqahModal";
 import { motion, AnimatePresence } from "motion/react";
-import { Flash, InfoCircle, More } from "iconsax-react";
+import { Flash, InfoCircle, Logout, Heart } from "iconsax-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../lib/authContext";
 
@@ -16,7 +16,6 @@ export function Home({
   const { logout } = useAuth();
   const [showSadaqah, setShowSadaqah] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
   const moodInfo = getNoorMood(noor.moodScore);
   const prevMealsRef = useRef(sadaqah.meals);
 
@@ -33,14 +32,6 @@ export function Home({
     if (d === 1) return "tmrw";
     return `${d}d`;
   })();
-
-  const getGreetingText = () => {
-    if (streak.current === 0)
-      return "Noorain hasn't been eating well, he misses you!";
-    if (streak.current === 1) return "Let's see how long this lasts.";
-    if (streak.current > 7) return "You're on fire! Noorain is thriving.";
-    return "Back for more, huh? Let's go.";
-  };
 
   const getNoorSpeech = () => {
     if (streak.current === 0 && streak.lastReadDate) {
@@ -62,69 +53,42 @@ export function Home({
   };
 
   return (
-    <div className="flex flex-col min-h-dvh bg-white overflow-hidden font-sans relative">
+    <div className="flex flex-col h-dvh bg-white overflow-hidden font-sans relative">
       {/* ── Top Bar ── */}
       <header className="flex flex-col gap-4 px-4 py-4 md:py-6 max-w-2xl mx-auto w-full pt-[max(1rem,env(safe-area-inset-top))]">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div>
-              <h1 className="text-xl md:text-3xl font-display text-gray-800 tracking-tight">
-                Assalam Alaikum
-              </h1>
-              <p className="text-sm md:text-base font-bold text-gray-400 mt-0.5">
-                {getGreetingText()}
-              </p>
-            </div>
+        <div className="flex justify-between items-center w-full mt-2">
+          <div className="flex flex-col whitespace-nowrap">
+            <h1 className="text-[22px] sm:text-2xl md:text-[28px] font-display text-gray-900 leading-none">
+              Assalam Alaikum
+            </h1>
+            <p className="hidden md:block text-base text-gray-400 mt-0.5">
+              Let's read today.
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="h-10 flex items-center gap-1.5 bg-orange-50 border-2 border-orange-200 rounded-full px-3">
+          <div className="flex items-center justify-end gap-1.5 sm:gap-2 flex-1 ml-2">
+            <div className="h-9 sm:h-10 flex items-center gap-1.5 bg-orange-50 border-2 border-orange-200 rounded-full px-2.5 sm:px-3">
               <Flash size="16" color="#FF9600" variant="Bold" />
-              <span className="text-sm font-extrabold text-[#FF9600]">
+              <span className="text-xs sm:text-sm font-extrabold text-[#FF9600]">
                 {streak.current}
               </span>
             </div>
-            <div className="h-10 items-center bg-red-50 border-2 border-red-200 rounded-full px-3 whitespace-nowrap hidden sm:flex">
-              <span className="text-xs font-extrabold text-[#FF4B4B] whitespace-nowrap">
-                {sadaqah.meals}
-                {sadaqah.meals === 1 ? " meal" : " meals"}
+            <div className="h-9 sm:h-10 flex items-center gap-1.5 bg-red-50 border-2 border-red-200 rounded-full px-2.5 sm:px-3">
+              <Heart size="16" color="#FF4B4B" variant="Bold" />
+              <span className="text-xs sm:text-sm font-extrabold text-[#FF4B4B]">
+                {sadaqah.meals}{" "}
+                <span className="hidden md:inline">
+                  {sadaqah.meals === 1 ? "meal" : "meals"}
+                </span>
               </span>
             </div>
 
-            <div className="relative">
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors ml-1"
-              >
-                <More size="20" color="#6B7280" />
-              </button>
-
-              <AnimatePresence>
-                {showMenu && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setShowMenu(false)}
-                    />
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                      className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border-2 border-gray-100 p-2 z-50 origin-top-right"
-                    >
-                      <button
-                        onClick={() => {
-                          setShowMenu(false);
-                          logout();
-                        }}
-                        className="w-full text-left px-4 py-3 rounded-xl text-red-500 font-bold hover:bg-red-50 transition-colors"
-                      >
-                        Sign out
-                      </button>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-            </div>
+            <button
+              onClick={logout}
+              className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-50 hover:text-red-500 transition-colors sm:ml-1"
+              title="Sign out"
+            >
+              <Logout size="18" className="sm:w-5 sm:h-5" color="#6B7280" />
+            </button>
           </div>
         </div>
 
@@ -168,28 +132,31 @@ export function Home({
       </header>
 
       {/* ── Main Content ── */}
-      <main className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full px-4 -mt-4">
-        <div className="flex flex-col items-center w-full">
-          {/* Character */}
-          <div className="w-[70vw] max-w-[380px] aspect-square shrink-0 relative z-10 overflow-visible">
-            <NoorCharacter moodScore={noor.moodScore} />
-          </div>
+      <main className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full px-4 md:px-0 min-h-0">
+        <div
+          className="flex flex-col items-center justify-end w-full h-full max-h-[600px] relative bg-cover bg-center bg-no-repeat rounded-3xl pb-6 md:pb-8 px-4 md:px-8 overflow-hidden"
+          style={{ backgroundImage: "url('/noor/characterbackground.png')" }}
+        >
+          {/* Speech Bubble (in flow, right above character, hugging content) */}
+          <div className="relative inline-block bg-white border-2 border-gray-200 border-b-4 rounded-2xl p-4 md:p-5 z-20 text-center shadow-lg translate-y-[30px] md:translate-y-[60px] max-w-[85%] mx-auto">
+            {/* Tail pointing DOWN to character */}
+            <div className="absolute bottom-[-11px] left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-b-4 border-r-4 border-gray-200 rotate-45 rounded-br-[3px]"></div>
 
-          {/* Speech Bubble */}
-          <div className="relative bg-white border-2 border-gray-200 border-b-4 rounded-2xl p-5 md:p-6 w-full max-w-md -mt-10 md:-mt-14 z-20 text-center">
-            {/* Tail pointing UP */}
-            <div className="absolute -top-[10px] left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-t-2 border-l-2 border-gray-200 rotate-45"></div>
-
-            <span className="text-[18px] md:text-xl font-bold text-gray-700 leading-snug">
+            <span className="text-[17px] md:text-lg font-bold text-gray-700 leading-snug">
               "{getNoorSpeech()}"
             </span>
+          </div>
+
+          {/* Character */}
+          <div className="w-[70vw] max-w-[280px] md:max-w-[340px] aspect-square shrink-0 relative z-10 overflow-visible translate-y-[2%] md:translate-y-[20%] lg:translate-y-[24%]">
+            <NoorCharacter moodScore={noor.moodScore} />
           </div>
         </div>
       </main>
 
       {/* ── Footer CTA ── */}
       <footer className="w-full p-4 md:p-8 mt-auto pb-safe">
-        <div className="max-w-2xl mx-auto w-full flex flex-col sm:flex-row gap-4">
+        <div className="max-w-2xl mx-auto w-full flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-4">
           <button
             onClick={() => onNavigate("browser")}
             className="btn-duo-secondary flex-1"
@@ -203,9 +170,6 @@ export function Home({
             {bookmark ? "Continue Reading" : "Read with Noorain"}
           </button>
         </div>
-        <p className="text-center text-[11px] text-gray-400 font-extrabold uppercase tracking-widest mt-3">
-          Keep Noorain happy, he'll donate food every Friday in your name!
-        </p>
       </footer>
 
       <SadaqahModal

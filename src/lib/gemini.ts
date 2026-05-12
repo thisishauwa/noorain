@@ -1,9 +1,11 @@
 import { humanizeNoorainQuestion } from "./humaniser";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const KEY_HINT = API_KEY ? API_KEY.slice(-4) : "none";
 const ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent";
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 const CACHE_KEY = "noorain_reflection_cache_v3";
+const QUOTA_BLOCK_UNTIL_KEY = `noorain_gemini_quota_block_until_${KEY_HINT}`;
 const pendingRequests = new Map<
   string,
   Promise<[ReflectionQuestion, ReflectionQuestion]>
@@ -23,14 +25,29 @@ export async function generateReflectionQuestions(
   surahName: string,
   translations: string[],
 ): Promise<[ReflectionQuestion, ReflectionQuestion]> {
-  if (!API_KEY) return fallback(surahName, translations);
+  console.log(`[Gemini] key hint: ...${KEY_HINT}`);
+  if (!API_KEY) {
+    console.warn("[Gemini] No API key — using fallback");
+    return cachedOrFallbackFromInputs(surahName, translations);
+  }
+  if (isQuotaBlocked()) {
+    console.warn("[Gemini] Quota block active — using fallback");
+    return cachedOrFallbackFromInputs(surahName, translations);
+  }
 
   const excerpt = translations.slice(0, 6).join(" ").slice(0, 800);
   const cacheKey = `${surahName}:${hashText(excerpt)}`;
   const cached = readCache(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    console.log("[Gemini] Returning cached questions");
+    return cached;
+  }
   const pending = pendingRequests.get(cacheKey);
-  if (pending) return pending;
+  if (pending) {
+    console.log("[Gemini] Returning in-flight request");
+    return pending;
+  }
+  console.log(`[Gemini] Requesting questions for ${surahName}...`);
 
   const prompt = `You are Noorain, a warm Quran companion reading alongside the user. Sound human, affectionate, and slightly quirky. You are allowed to say things like "I was reading that with you", "wait", "mm okay", or "let me quiz you" — but keep it natural and short.
 
@@ -53,18 +70,37 @@ Return ONLY valid JSON:
 
   const request = (async () => {
     try {
-      const res = await fetchWithRetry(`${ENDPOINT}?key=${API_KEY}`, {
+      const res = await fetch(`${ENDPOINT}?key=${API_KEY}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.55,
-            maxOutputTokens: 500,
+            maxOutputTokens: 2048,
+            thinkingConfig: { thinkingBudget: 0 },
             responseMimeType: "application/json",
+            responseSchema: {
+              type: "ARRAY",
+              items: {
+                type: "OBJECT",
+                properties: {
+                  question: { type: "STRING" },
+                  options: { type: "ARRAY", items: { type: "STRING" } },
+                  correct: { type: "INTEGER" },
+                },
+                required: ["question", "options", "correct"],
+              },
+            },
           },
         }),
       });
+      if (res.status === 429) {
+        const errBody = await res.json().catch(() => ({}));
+        console.error("[Gemini]", res.status, JSON.stringify(errBody));
+        blockQuota(errBody);
+        return cachedOrFallback(cacheKey, surahName, translations);
+      }
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
         console.error("[Gemini]", res.status, JSON.stringify(errBody));
@@ -80,8 +116,10 @@ Return ONLY valid JSON:
         writeCache(cacheKey, parsed);
         return parsed;
       }
+      console.error("[Gemini] Parse failed — raw response text:", text);
       return cachedOrFallback(cacheKey, surahName, translations);
-    } catch {
+    } catch (err) {
+      console.error("[Gemini] Fetch/runtime error:", err);
       return cachedOrFallback(cacheKey, surahName, translations);
     } finally {
       pendingRequests.delete(cacheKey);
@@ -92,20 +130,6 @@ Return ONLY valid JSON:
   return request;
 }
 
-async function fetchWithRetry(
-  url: string,
-  init: RequestInit,
-  attempts = 3,
-): Promise<Response> {
-  for (let i = 0; i < attempts; i++) {
-    const res = await fetch(url, init);
-    if (res.status !== 429 || i === attempts - 1) return res;
-    const retryAfter = Number(res.headers.get("Retry-After") ?? 0);
-    await new Promise((r) => setTimeout(r, (retryAfter || 2 ** i) * 1000));
-  }
-  return fetch(url, init);
-}
-
 function cachedOrFallback(
   cacheKey: string,
   surahName: string,
@@ -113,6 +137,15 @@ function cachedOrFallback(
 ): [ReflectionQuestion, ReflectionQuestion] {
   const cached = readCache(cacheKey);
   return cached ?? fallback(surahName, translations);
+}
+
+function cachedOrFallbackFromInputs(
+  surahName: string,
+  translations: string[],
+): [ReflectionQuestion, ReflectionQuestion] {
+  const excerpt = translations.slice(0, 6).join(" ").slice(0, 800);
+  const cacheKey = `${surahName}:${hashText(excerpt)}`;
+  return cachedOrFallback(cacheKey, surahName, translations);
 }
 
 function readCache(
@@ -144,6 +177,40 @@ function writeCache(
   } catch {}
 }
 
+function isQuotaBlocked() {
+  try {
+    const raw = localStorage.getItem(QUOTA_BLOCK_UNTIL_KEY);
+    if (!raw) return false;
+    return Number(raw) > Date.now();
+  } catch {
+    return false;
+  }
+}
+
+function blockQuota(errBody: any) {
+  const violations =
+    errBody?.error?.details?.find((detail: any) =>
+      String(detail?.["@type"] ?? "").includes("QuotaFailure"),
+    )?.violations ?? [];
+  const retryDelay = errBody?.error?.details?.find((detail: any) =>
+    String(detail?.["@type"] ?? "").includes("RetryInfo"),
+  )?.retryDelay;
+  const retrySeconds =
+    typeof retryDelay === "string" && retryDelay.endsWith("s")
+      ? Math.max(0, Math.ceil(parseFloat(retryDelay)))
+      : 0;
+  const isDailyLimit = violations.some((violation: any) =>
+    String(violation?.quotaId ?? "").includes("PerDay"),
+  );
+  const blockMs = isDailyLimit
+    ? 12 * 60 * 60 * 1000
+    : Math.max(retrySeconds * 1000, 60 * 1000);
+
+  try {
+    localStorage.setItem(QUOTA_BLOCK_UNTIL_KEY, String(Date.now() + blockMs));
+  } catch {}
+}
+
 function parseQuestions(
   text: string,
   surahName: string,
@@ -152,29 +219,65 @@ function parseQuestions(
     .replace(/```json/g, "")
     .replace(/```/g, "")
     .trim();
-  const candidates = [cleaned, cleaned.match(/\[[\s\S]*\]/)?.[0] ?? ""];
-  for (const candidate of candidates) {
-    if (!candidate) continue;
+  console.log(
+    "[Gemini] parseQuestions text length:",
+    cleaned.length,
+    "| first 300:",
+    cleaned.slice(0, 300),
+  );
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch (e) {
+    console.error("[Gemini] JSON.parse threw:", e);
+    const match = cleaned.match(/\[[\s\S]*\]/)?.[0];
+    if (!match) {
+      console.error("[Gemini] No JSON array found by regex either");
+      return null;
+    }
     try {
-      const parsed = JSON.parse(candidate) as ReflectionQuestion[];
-      if (
-        parsed.length >= 2 &&
-        parsed.every(
-          (q) =>
-            typeof q.question === "string" &&
-            Array.isArray(q.options) &&
-            q.options.length === 4 &&
-            typeof q.correct === "number",
-        )
-      ) {
-        return [
-          humaniseQuestion(parsed[0], surahName),
-          humaniseQuestion(parsed[1], surahName),
-        ];
-      }
-    } catch {}
+      parsed = JSON.parse(match);
+    } catch (e2) {
+      console.error("[Gemini] Regex fallback parse also threw:", e2);
+      return null;
+    }
   }
-  return null;
+
+  if (!Array.isArray(parsed)) {
+    console.error("[Gemini] Parsed value is not an array:", typeof parsed);
+    return null;
+  }
+  if (parsed.length < 2) {
+    console.error("[Gemini] Array has fewer than 2 items:", parsed.length);
+    return null;
+  }
+
+  for (let i = 0; i < 2; i++) {
+    const q = parsed[i];
+    if (typeof q.question !== "string") {
+      console.error(`[Gemini] q[${i}].question not string:`, q.question);
+      return null;
+    }
+    if (!Array.isArray(q.options)) {
+      console.error(`[Gemini] q[${i}].options not array:`, q.options);
+      return null;
+    }
+    if (q.options.length < 2) {
+      console.error(`[Gemini] q[${i}].options too short:`, q.options.length);
+      return null;
+    }
+    if (q.correct == null) {
+      console.error(`[Gemini] q[${i}].correct missing`);
+      return null;
+    }
+    q.correct = Number(q.correct);
+  }
+
+  return [
+    humaniseQuestion(parsed[0], surahName),
+    humaniseQuestion(parsed[1], surahName),
+  ];
 }
 
 function humaniseQuestion(

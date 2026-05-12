@@ -26,6 +26,7 @@ interface AuthState {
   accessToken: string | null;
   isConnecting: boolean;
   isReady: boolean;
+  isGuest: boolean;
   login: () => Promise<void>;
   continueAsGuest: () => void;
   logout: () => void;
@@ -41,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [isGuest, setIsGuest] = useState(isGuestMode);
   const readingDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -80,12 +82,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const continueAsGuest = useCallback(() => {
     setGuestMode(true);
-    setIsReady(true);
+    setIsGuest(true);
   }, []);
 
   const logout = useCallback(() => {
     clearTokens();
     setGuestMode(false);
+    setIsGuest(false);
     setAccessToken(null);
     setUser(null);
   }, []);
@@ -121,6 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         accessToken,
         isConnecting,
         isReady,
+        isGuest,
         login,
         continueAsGuest,
         logout,

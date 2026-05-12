@@ -15,6 +15,7 @@ import { generateReflectionQuestions, ReflectionQuestion } from "../lib/gemini";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ArrowLeft2,
+  ArrowRight2,
   Book1,
   Play,
   Bookmark,
@@ -212,9 +213,7 @@ export function Reader({
       if (data) {
         setVerses(data);
         if (data.length > 0) {
-          const juzNumber = data[0].juz_number;
-          if (juzNumber) markPageRead(page, juzNumber);
-          // Cloud: track resume location + build verse range for activity-days
+          // Only tracking cloud resume location here, NOT advancing streak/happiness until 'Done for today' is clicked.
           const firstKey = data[0].verse_key;
           const lastKey = data[data.length - 1].verse_key;
           const range = `${firstKey}-${lastKey}`;
@@ -309,6 +308,11 @@ export function Reader({
   };
 
   const handleDone = () => {
+    if (verses.length > 0) {
+      const juzNumber = verses[0].juz_number;
+      if (juzNumber) markPageRead(page, juzNumber);
+    }
+
     flushSession();
     const surahName = currentChapter?.name_simple ?? "this surah";
     const translations = verses.flatMap(
@@ -668,25 +672,28 @@ export function Reader({
 
       {/* Action Bar — fixed bottom on mobile, inline on md+ */}
       {!loading && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 pb-safe px-4 pt-4 z-10 md:relative md:bottom-auto md:left-auto md:right-auto md:bg-transparent md:backdrop-blur-none md:border-0 md:pb-8 md:pt-0">
-          <div className="max-w-2xl mx-auto w-full flex flex-col gap-3">
-            <div className="flex gap-3">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="btn-duo-secondary flex-1 text-sm"
-              >
-                ← Previous
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(604, p + 1))}
-                className="btn-duo-secondary flex-1 text-sm"
-              >
-                Next →
-              </button>
-            </div>
-            <button onClick={handleDone} className="btn-duo-primary w-full">
+        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 pb-safe px-4 pt-4 z-10 md:relative md:bottom-auto md:left-auto md:right-auto md:bg-transparent md:backdrop-blur-none md:border-0 md:pb-8 md:pt-6">
+          <div className="max-w-2xl mx-auto w-full flex gap-2 sm:gap-3">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="btn-duo-secondary aspect-square px-0 w-[52px] sm:w-[56px] shrink-0"
+              aria-label="Previous page"
+            >
+              <ArrowLeft2 size="24" color="#afafaf" />
+            </button>
+            <button
+              onClick={handleDone}
+              className="btn-duo-primary flex-1 whitespace-nowrap"
+            >
               <TickSquare size="24" color="white" variant="Bold" />
               Done for today
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(604, p + 1))}
+              className="btn-duo-secondary aspect-square px-0 w-[52px] sm:w-[56px] shrink-0"
+              aria-label="Next page"
+            >
+              <ArrowRight2 size="24" color="#afafaf" />
             </button>
           </div>
         </div>
@@ -700,10 +707,11 @@ export function Reader({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center px-6 overflow-y-auto"
+            className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-end px-4 md:px-8 pb-6 md:pb-8 overflow-y-auto bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: "url('/noor/characterbackground.png')" }}
           >
             {/* Noorain character */}
-            <div className="w-[68vw] max-w-[320px] aspect-square relative flex items-center justify-center overflow-visible mb-2">
+            <div className="w-[68vw] max-w-[280px] md:max-w-[340px] aspect-square relative flex items-center justify-center overflow-visible mb-2 translate-y-[2%] md:translate-y-[15%]">
               <motion.img
                 key={goodbyeStep}
                 initial={{ scale: 0.85, opacity: 0, y: 16 }}
@@ -728,8 +736,8 @@ export function Reader({
               className="w-full max-w-sm flex flex-col items-center gap-4"
             >
               {/* Speech bubble */}
-              <div className="relative bg-white border-2 border-gray-200 border-b-4 rounded-2xl p-5 w-full text-center">
-                <div className="absolute top-[-10px] left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-t-2 border-l-2 border-gray-200 rotate-45" />
+              <div className="relative inline-block bg-white border-2 border-gray-200 border-b-4 rounded-2xl p-5 w-full text-center shadow-lg translate-y-[20px] md:translate-y-[50px]">
+                <div className="absolute bottom-[-11px] left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-b-4 border-r-4 border-gray-200 rotate-45 rounded-br-[3px]"></div>
                 <p className="text-base font-bold text-gray-800 leading-snug">
                   {goodbyeStep === 1 &&
                     (reflectionQs

@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { AppProvider, useAppContext } from "./lib/store";
-import { AuthProvider, useAuth, isGuestMode } from "./lib/authContext";
+import { AuthProvider, useAuth } from "./lib/authContext";
 import { Home } from "./screens/Home";
 import { Browser } from "./screens/Browser";
 import { Reader } from "./screens/Reader";
@@ -13,7 +13,7 @@ import { Landing } from "./screens/Landing";
 
 function MainApp() {
   const { streak, evaluateStreak, bookmark } = useAppContext();
-  const { accessToken, isReady, isConnecting } = useAuth();
+  const { accessToken, isReady, isConnecting, isGuest } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<
     "home" | "browser" | "reader"
   >("home");
@@ -55,7 +55,7 @@ function MainApp() {
     return <Landing />;
   }
 
-  if (!accessToken && !isGuestMode()) {
+  if (!accessToken && !isGuest) {
     return <Landing />;
   }
 

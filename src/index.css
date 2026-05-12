@@ -4,7 +4,7 @@
 
 @theme {
   --font-arabic: "Amiri", serif;
-  --font-sans: "Figtree", system-ui, sans-serif;
+  --font-sans: "DIN Next Rounded", system-ui, sans-serif;
 
   /* Warm background palette */
   --color-warm-bg: #fbf7ef;
@@ -42,6 +42,15 @@
 }
 
 @font-face {
+  font-family: "DIN Next Rounded";
+  src: url("/font/DIN%20Next%20Rounded%20LT%20W01%20Regular.woff2")
+    format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: "PPMondwest";
   src: url("/font/ppmondwest-regular.otf") format("opentype");
   font-weight: normal;
@@ -60,9 +69,14 @@
 body {
   background-color: #ffffff;
   color: var(--color-warm-text);
-  font-family: "Figtree", system-ui, sans-serif;
+  font-family: "DIN Next Rounded", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
+}
+
+button {
+  font-family: "DIN Next Rounded", system-ui, sans-serif;
+  font-weight: 500;
 }
 
 @utility pb-safe {
@@ -88,6 +102,9 @@ body {
   .font-selfmodern {
     font-family: "SelfModern", serif;
   }
+  .font-din {
+    font-family: "DIN Next Rounded", system-ui, sans-serif;
+  }
 }
 
 @layer components {
@@ -101,9 +118,8 @@ body {
   .btn-duo-primary {
     background-color: #58cc02;
     color: white;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-family: "DIN Next Rounded", system-ui, sans-serif;
+    font-weight: bold;
     font-size: 15px;
     padding: 1rem;
     border-radius: 1rem;
@@ -123,9 +139,8 @@ body {
   .btn-duo-secondary {
     background-color: white;
     color: #afafaf;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-family: "DIN Next Rounded", system-ui, sans-serif;
+    font-weight: bold;
     font-size: 15px;
     padding: 1rem;
     border-radius: 1rem;
