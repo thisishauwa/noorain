@@ -33,6 +33,17 @@ export function Home({
     return `${d}d`;
   })();
 
+  const hasReadToday = (() => {
+    if (!streak.lastReadDate) return false;
+    const last = new Date(streak.lastReadDate);
+    const now = new Date();
+    return (
+      last.getFullYear() === now.getFullYear() &&
+      last.getMonth() === now.getMonth() &&
+      last.getDate() === now.getDate()
+    );
+  })();
+
   const getNoorSpeech = () => {
     if (streak.current === 0 && streak.lastReadDate) {
       const days = Math.max(
@@ -49,7 +60,7 @@ export function Home({
       if (d === 0) return "Today is donation day! You made it happen.";
       return `${d} day${d !== 1 ? "s" : ""} till I donate, keep your streak!`;
     }
-    return moodInfo.message;
+    return hasReadToday ? moodInfo.messageAfter : moodInfo.message;
   };
 
   const isMorning = new Date().getHours() >= 6 && new Date().getHours() < 18;
