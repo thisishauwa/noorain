@@ -143,7 +143,7 @@ export function Home({
           style={{ backgroundImage: bgImage }}
         >
           {/* Speech Bubble (in flow, right above character, hugging content) */}
-          <div className="relative inline-block bg-white border-2 border-gray-200 border-b-4 rounded-2xl p-4 md:p-5 z-20 text-center shadow-lg translate-y-[30px] md:translate-y-[60px] max-w-[85%] mx-auto">
+          <div className="relative inline-block bg-white border-2 border-gray-200 border-b-4 rounded-2xl p-4 md:p-5 z-20 text-center shadow-lg mb-8 md:mb-12 max-w-[85%] mx-auto">
             {/* Tail pointing DOWN to character */}
             <div className="absolute bottom-[-11px] left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-b-4 border-r-4 border-gray-200 rotate-45 rounded-br-[3px]"></div>
 
@@ -154,13 +154,7 @@ export function Home({
 
           {/* Character */}
           <div className="w-[70vw] max-w-[280px] md:max-w-[340px] aspect-square shrink-0 relative z-10 overflow-visible translate-y-[-14%]">
-            <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-              className="w-full h-full"
-            >
-              <NoorCharacter moodScore={noor.moodScore} />
-            </motion.div>
+            <NoorCharacter moodScore={noor.moodScore} />
           </div>
         </div>
       </main>
@@ -215,7 +209,7 @@ export function Home({
                 he is, the more he gives.
               </p>
               <p className="text-[11px] text-gray-400 font-extrabold uppercase tracking-widest mb-6">
-                Powered by Noorain Foundation · Verified Charity
+                Noorain Foundation · Verified Charity
               </p>
               <button
                 onClick={() => setShowInfo(false)}

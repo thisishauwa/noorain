@@ -941,20 +941,14 @@ export function Reader({
 
           {/* Noorain character (Placed at bottom, absolutely positioned) */}
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[68vw] max-w-[280px] md:max-w-[340px] aspect-square z-10 pointer-events-none translate-y-[-5%]">
-            <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-              className="w-full h-full"
-            >
-              <motion.img
-                key={goodbyeStep}
-                initial={{ scale: 0.85, opacity: 0, y: 16 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                src="/newcharacters/Waving.png"
-                className="w-full h-full object-contain pointer-events-none origin-center"
-              />
-            </motion.div>
+            <motion.img
+              key={goodbyeStep}
+              initial={{ scale: 0.85, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              src="/newcharacters/Waving.png"
+              className="w-full h-full object-contain pointer-events-none origin-center"
+            />
           </div>
 
         </div>
