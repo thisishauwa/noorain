@@ -164,7 +164,7 @@ export function Home({
           </div>
 
           {/* Character */}
-          <div className="w-[70vw] max-w-[280px] md:max-w-[340px] aspect-square shrink-0 relative z-10 overflow-visible translate-y-[-14%]">
+          <div className="w-[52vw] max-w-[280px] md:max-w-[340px] aspect-square shrink-0 relative z-10 overflow-visible translate-y-[-20%]">
             <NoorCharacter moodScore={noor.moodScore} />
           </div>
         </div>
