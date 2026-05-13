@@ -42,7 +42,7 @@ export function SadaqahModal({ show, meals, onClose }: Props) {
 
             {/* Noorain character */}
             <motion.img
-              src="/noor/Hugs.png"
+              src="/newcharacters/Hugs.png"
               alt="Noorain giving hugs"
               animate={{ y: [0, -7, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}

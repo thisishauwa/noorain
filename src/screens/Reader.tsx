@@ -370,6 +370,11 @@ export function Reader({
       : null;
   const happinessGained = Math.max(0, noor.moodScore - initialMoodRef.current);
 
+  const isMorning = new Date().getHours() >= 6 && new Date().getHours() < 18;
+  const bgImage = isMorning
+    ? "url('/newcharacters/bgimgmorning.png')"
+    : "url('/newcharacters/bgimgnight.png')";
+
   return (
     <div className="flex flex-col h-dvh bg-white text-gray-800 font-sans relative">
       {/* Header */}
@@ -421,7 +426,7 @@ export function Reader({
         {loading ? (
           <div className="flex flex-col items-center justify-center h-[50vh] text-gray-400 font-bold gap-4">
             <motion.img
-              src={`/noor/${moodInfo.asset}`}
+              src={`/newcharacters/${moodInfo.asset}`}
               alt="Loading"
               className="w-20 h-20 opacity-50 grayscale"
               animate={{ y: [0, -15, 0] }}
@@ -707,38 +712,25 @@ export function Reader({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-end px-4 md:px-8 pb-6 md:pb-8 overflow-y-auto bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: "url('/noor/characterbackground.png')" }}
+            className="fixed inset-0 bg-white/95 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-8"
           >
-            {/* Noorain character */}
-            <div className="w-[68vw] max-w-[280px] md:max-w-[340px] aspect-square relative flex items-center justify-center overflow-visible mb-2 translate-y-[2%] md:translate-y-[15%]">
-              <motion.img
-                key={goodbyeStep}
-                initial={{ scale: 0.85, opacity: 0, y: 16 }}
-                animate={{ scale: 1.3, opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                src={
-                  goodbyeStep === 4
-                    ? "/noor/Waving.png"
-                    : goodbyeStep >= 3
-                      ? "/noor/Cute.png"
-                      : `/noor/${moodInfo.asset}`
-                }
-                className="w-full h-full object-contain pointer-events-none origin-center"
-              />
-            </div>
-
-            <motion.div
-              key={`step-${goodbyeStep}`}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="w-full max-w-sm flex flex-col items-center gap-4"
+            <div 
+              className="w-full h-full md:max-h-[850px] max-w-2xl mx-auto md:rounded-3xl flex flex-col items-center justify-start px-4 md:px-8 pb-0 overflow-hidden bg-cover bg-bottom bg-no-repeat relative"
+              style={{ backgroundImage: bgImage }}
             >
-              {/* Speech bubble */}
-              <div className="relative inline-block bg-white border-2 border-gray-200 border-b-4 rounded-2xl p-5 w-full text-center shadow-lg translate-y-[20px] md:translate-y-[50px]">
-                <div className="absolute bottom-[-11px] left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-b-4 border-r-4 border-gray-200 rotate-45 rounded-br-[3px]"></div>
-                <p className="text-base font-bold text-gray-800 leading-snug">
+              {/* Options & Speech Bubble Container */}
+              <div className="flex-1 w-full flex flex-col justify-center items-center shrink-0 z-20 overflow-y-auto scrollbar-hide pb-[300px]">
+                <motion.div
+                  key={`step-${goodbyeStep}`}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full max-w-sm flex flex-col items-center gap-4 py-8 mt-auto"
+                >
+                  {/* Speech bubble */}
+                  <div className="relative inline-block bg-white border-2 border-gray-200 border-b-4 rounded-2xl p-5 w-full text-center">
+                    <div className="absolute bottom-[-11px] left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-b-4 border-r-4 border-gray-200 rotate-45 rounded-br-[3px]"></div>
+                    <p className="text-base font-bold text-gray-800 leading-snug">
                   {goodbyeStep === 1 &&
                     (reflectionQs
                       ? reflectionQs[0].question
@@ -776,7 +768,7 @@ export function Reader({
                           }}
                           className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
                             !answered
-                              ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#1CB0F6]/3 active:scale-95"
+                              ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#F0F9FF] active:scale-95"
                               : isCorrect
                                 ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
                                 : isSelected
@@ -855,7 +847,7 @@ export function Reader({
                           }}
                           className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
                             !answered
-                              ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#1CB0F6]/3 active:scale-95"
+                              ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#F0F9FF] active:scale-95"
                               : isCorrect
                                 ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
                                 : isSelected
@@ -945,9 +937,30 @@ export function Reader({
                 </div>
               )}
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+
+          {/* Noorain character (Placed at bottom, absolutely positioned) */}
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[68vw] max-w-[280px] md:max-w-[340px] aspect-square z-10 pointer-events-none translate-y-[-5%]">
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+              className="w-full h-full"
+            >
+              <motion.img
+                key={goodbyeStep}
+                initial={{ scale: 0.85, opacity: 0, y: 16 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                src="/newcharacters/Waving.png"
+                className="w-full h-full object-contain pointer-events-none origin-center"
+              />
+            </motion.div>
+          </div>
+
+        </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
 
       {/* Toast */}
       <AnimatePresence>

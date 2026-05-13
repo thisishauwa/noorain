@@ -52,6 +52,11 @@ export function Home({
     return moodInfo.message;
   };
 
+  const isMorning = new Date().getHours() >= 6 && new Date().getHours() < 18;
+  const bgImage = isMorning
+    ? "url('/newcharacters/bgimgmorning.png')"
+    : "url('/newcharacters/bgimgnight.png')";
+
   return (
     <div className="flex flex-col h-dvh bg-white overflow-hidden font-sans relative">
       {/* ── Top Bar ── */}
@@ -134,8 +139,8 @@ export function Home({
       {/* ── Main Content ── */}
       <main className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full px-4 md:px-0 min-h-0">
         <div
-          className="flex flex-col items-center justify-end w-full h-full max-h-[600px] relative bg-cover bg-center bg-no-repeat rounded-3xl pb-6 md:pb-8 px-4 md:px-8 overflow-hidden"
-          style={{ backgroundImage: "url('/noor/characterbackground.png')" }}
+          className="flex flex-col items-center justify-end w-full h-full max-h-[600px] relative bg-cover bg-bottom bg-no-repeat rounded-3xl pb-6 md:pb-8 px-4 md:px-8 overflow-hidden"
+          style={{ backgroundImage: bgImage }}
         >
           {/* Speech Bubble (in flow, right above character, hugging content) */}
           <div className="relative inline-block bg-white border-2 border-gray-200 border-b-4 rounded-2xl p-4 md:p-5 z-20 text-center shadow-lg translate-y-[30px] md:translate-y-[60px] max-w-[85%] mx-auto">
@@ -148,8 +153,14 @@ export function Home({
           </div>
 
           {/* Character */}
-          <div className="w-[70vw] max-w-[280px] md:max-w-[340px] aspect-square shrink-0 relative z-10 overflow-visible translate-y-[2%] md:translate-y-[20%] lg:translate-y-[24%]">
-            <NoorCharacter moodScore={noor.moodScore} />
+          <div className="w-[70vw] max-w-[280px] md:max-w-[340px] aspect-square shrink-0 relative z-10 overflow-visible translate-y-[-14%]">
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+              className="w-full h-full"
+            >
+              <NoorCharacter moodScore={noor.moodScore} />
+            </motion.div>
           </div>
         </div>
       </main>

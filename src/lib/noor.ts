@@ -36,7 +36,7 @@ export function getNoorMood(score: number): NoorMoodResult {
   if (score <= 25)
     return {
       mood: "Disappointed & Sad",
-      asset: "Disappointed-and-Sad.png",
+      asset: "Disappointed & Sad.png",
       message: "It's okay. Come back.",
       tier: "low",
     };
@@ -78,7 +78,7 @@ export function getNoorMood(score: number): NoorMoodResult {
   if (score <= 55)
     return {
       mood: "Finger biting",
-      asset: "Finger-biting.png",
+      asset: "Finger biting.png",
       message: "Just one page. That's all.",
       tier: "neutral",
     };
@@ -127,7 +127,7 @@ export function getNoorMood(score: number): NoorMoodResult {
   if (score <= 88)
     return {
       mood: "Tongue out",
-      asset: "Tongue-out.png",
+      asset: "Tongue out.png",
       message: "I'm so happy right now.",
       tier: "good",
     };
@@ -141,14 +141,14 @@ export function getNoorMood(score: number): NoorMoodResult {
   if (score <= 93)
     return {
       mood: "Rock & Roll",
-      asset: "Rock-and-roll.png",
+      asset: "Rock & roll.png",
       message: "I'm swimming in barakah. Let's give some away.",
       tier: "peak",
     };
   if (score <= 95)
     return {
       mood: "Rock & Roll 2",
-      asset: "Rock-and-roll-2.png",
+      asset: "Rock & roll 2.png",
       message: "I'm swimming in barakah. Let's give some away.",
       tier: "peak",
     };
@@ -162,7 +162,7 @@ export function getNoorMood(score: number): NoorMoodResult {
     };
   return {
     mood: "Kissy face",
-    asset: "Kissy-face.png",
+    asset: "Kissy face.png",
     message: "I'm the happiest I've been in years!",
     sadaqahTrigger: true,
     tier: "peak",
