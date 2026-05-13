@@ -718,238 +718,238 @@ export function Reader({
               className="w-full h-full md:max-h-[850px] max-w-2xl mx-auto md:rounded-3xl flex flex-col items-center justify-start px-4 md:px-8 pb-0 overflow-hidden bg-cover bg-bottom bg-no-repeat relative"
               style={{ backgroundImage: bgImage }}
             >
-              {/* Options & Speech Bubble Container */}
-              <div className="flex-1 w-full flex flex-col justify-center items-center shrink-0 z-20 overflow-y-auto scrollbar-hide pb-[300px]">
+            {/* ── Top: Question + Options ── */}
+              <div className="flex-1 w-full flex flex-col justify-end items-center px-4 md:px-8 pt-6 pb-4 z-20 min-h-0">
                 <motion.div
                   key={`step-${goodbyeStep}`}
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="w-full max-w-sm flex flex-col items-center gap-4 py-8 mt-auto"
+                  className="w-full max-w-sm flex flex-col items-center gap-3"
                 >
                   {/* Speech bubble */}
-                  <div className="relative inline-block bg-white border-2 border-gray-200 border-b-4 rounded-2xl p-5 w-full text-center">
+                  <div className="relative bg-white border-2 border-gray-200 border-b-4 rounded-2xl px-4 py-3 w-full text-center">
                     <div className="absolute bottom-[-11px] left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-b-4 border-r-4 border-gray-200 rotate-45 rounded-br-[3px]"></div>
-                    <p className="text-base font-bold text-gray-800 leading-snug">
-                  {goodbyeStep === 1 &&
-                    (reflectionQs
-                      ? reflectionQs[0].question
-                      : "I was reading that with you... wait, let me ask you something small.")}
-                  {goodbyeStep === 2 &&
-                    (reflectionQs
-                      ? reflectionQs[1].question
-                      : "Hmm okay, one more — I want to make sure I understood it with you.")}
-                  {goodbyeStep === 3 &&
-                    (happinessGained > 0
-                      ? `JazakAllah Khair. +${happinessGained} happiness — say "Assalam Alaikum" to leave.`
-                      : 'JazakAllah Khair for sharing. Say "Assalam Alaikum" — I want to hear your voice before you go.')}
-                  {goodbyeStep === 4 &&
-                    "Wa Alaikum Assalam! Can't wait to read with you tomorrow."}
-                </p>
+                    <p className="text-sm font-bold text-gray-800 leading-snug">
+                      {goodbyeStep === 1 &&
+                        (reflectionQs
+                          ? reflectionQs[0].question
+                          : "I was reading that with you... wait, let me ask you something small.")}
+                      {goodbyeStep === 2 &&
+                        (reflectionQs
+                          ? reflectionQs[1].question
+                          : "Hmm okay, one more — I want to make sure I understood it with you.")}
+                      {goodbyeStep === 3 &&
+                        (happinessGained > 0
+                          ? `JazakAllah Khair. +${happinessGained} happiness — say "Assalam Alaikum" to leave.`
+                          : 'JazakAllah Khair for sharing. Say "Assalam Alaikum" — I want to hear your voice before you go.')}
+                      {goodbyeStep === 4 &&
+                        "Wa Alaikum Assalam! Can't wait to read with you tomorrow."}
+                    </p>
+                  </div>
+
+                  {/* Step 1 — Q1 options */}
+                  {goodbyeStep === 1 && reflectionQs && (
+                    <div className="w-full flex flex-col gap-2">
+                      <div className="flex flex-col gap-1.5 w-full">
+                        {reflectionQs[0].options.map((opt, i) => {
+                          const answered = reflectionA1 !== null;
+                          const isCorrect = i === reflectionQs[0].correct;
+                          const isSelected = reflectionA1 === i;
+                          return (
+                            <button
+                              key={i}
+                              onClick={() => {
+                                if (!answered) {
+                                  setReflectionA1(i);
+                                  if (i === reflectionQs[0].correct)
+                                    queueAdvance(2);
+                                }
+                              }}
+                              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
+                                !answered
+                                  ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#F0F9FF] active:scale-95"
+                                  : isCorrect
+                                    ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
+                                    : isSelected
+                                      ? "bg-[#1CB0F6]/12 border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]"
+                                      : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
+                              }`}
+                            >
+                              <span
+                                className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs ${
+                                  !answered
+                                    ? "bg-[#1CB0F6]/12 text-[#1CB0F6] border border-[#1CB0F6]/35"
+                                    : isCorrect
+                                      ? "bg-[#58CC02] text-white"
+                                      : isSelected
+                                        ? "bg-[#1CB0F6] text-white"
+                                        : "bg-gray-200 text-gray-500"
+                                }`}
+                              >
+                                {OPTION_LETTERS[i]}
+                              </span>
+                              <span className="flex-1">{opt}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {reflectionA1 !== null && (
+                        <p
+                          className={`text-xs font-bold text-center ${
+                            reflectionA1 === reflectionQs[0].correct
+                              ? "text-[#58CC02]"
+                              : "text-red-500"
+                          }`}
+                        >
+                          {reflectionA1 === reflectionQs[0].correct
+                            ? ""
+                            : `Not quite — the answer is: "${reflectionQs[0].options[reflectionQs[0].correct]}"`}
+                        </p>
+                      )}
+                      <button
+                        onClick={() => setGoodbyeStep(2)}
+                        disabled={reflectionA1 === null}
+                        className="btn-duo-primary w-full disabled:opacity-40"
+                      >
+                        <TickSquare size="20" color="white" variant="Bold" />
+                        {reflectionA1 === null
+                          ? "Pick one to continue"
+                          : reflectionA1 === reflectionQs[0].correct
+                            ? "Correct"
+                            : "Next"}
+                      </button>
+                    </div>
+                  )}
+                  {goodbyeStep === 1 && !reflectionQs && (
+                    <div className="w-full flex justify-center py-4">
+                      <div className="w-6 h-6 border-2 border-[#1CB0F6] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+
+                  {/* Step 2 — Q2 options */}
+                  {goodbyeStep === 2 && reflectionQs && (
+                    <div className="w-full flex flex-col gap-2">
+                      <div className="flex flex-col gap-1.5 w-full">
+                        {reflectionQs[1].options.map((opt, i) => {
+                          const answered = reflectionA2 !== null;
+                          const isCorrect = i === reflectionQs[1].correct;
+                          const isSelected = reflectionA2 === i;
+                          return (
+                            <button
+                              key={i}
+                              onClick={() => {
+                                if (!answered) {
+                                  setReflectionA2(i);
+                                  if (i === reflectionQs[1].correct)
+                                    queueAdvance(3);
+                                }
+                              }}
+                              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
+                                !answered
+                                  ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#F0F9FF] active:scale-95"
+                                  : isCorrect
+                                    ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
+                                    : isSelected
+                                      ? "bg-[#1CB0F6]/12 border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]"
+                                      : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
+                              }`}
+                            >
+                              <span
+                                className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs ${
+                                  !answered
+                                    ? "bg-[#1CB0F6]/12 text-[#1CB0F6] border border-[#1CB0F6]/35"
+                                    : isCorrect
+                                      ? "bg-[#58CC02] text-white"
+                                      : isSelected
+                                        ? "bg-[#1CB0F6] text-white"
+                                        : "bg-gray-200 text-gray-500"
+                                }`}
+                              >
+                                {OPTION_LETTERS[i]}
+                              </span>
+                              <span className="flex-1">{opt}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {reflectionA2 !== null && (
+                        <p
+                          className={`text-xs font-bold text-center ${
+                            reflectionA2 === reflectionQs[1].correct
+                              ? "text-[#58CC02]"
+                              : "text-red-500"
+                          }`}
+                        >
+                          {reflectionA2 === reflectionQs[1].correct
+                            ? ""
+                            : `Not quite — the answer is: "${reflectionQs[1].options[reflectionQs[1].correct]}"`}
+                        </p>
+                      )}
+                      <button
+                        onClick={() => setGoodbyeStep(3)}
+                        disabled={reflectionA2 === null}
+                        className="btn-duo-primary w-full disabled:opacity-40"
+                      >
+                        <TickSquare size="20" color="white" variant="Bold" />
+                        {reflectionA2 === null
+                          ? "Pick one to continue"
+                          : reflectionA2 === reflectionQs[1].correct
+                            ? "Correct"
+                            : "Continue"}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Step 3 — farewell + mic */}
+                  {goodbyeStep === 3 && (
+                    <div className="w-full flex flex-col items-center gap-3">
+                      <div
+                        className={`flex items-center gap-3 px-5 py-3 rounded-2xl border-2 w-full justify-center transition-all ${
+                          isListening
+                            ? "border-[#1CB0F6] bg-[#1CB0F6]/5 text-[#1CB0F6]"
+                            : "border-gray-200 bg-gray-50 text-gray-400"
+                        }`}
+                      >
+                        <motion.div
+                          animate={isListening ? { scale: [1, 1.25, 1] } : {}}
+                          transition={{ duration: 1, repeat: Infinity }}
+                        >
+                          <Microphone2
+                            size="24"
+                            color={isListening ? "#1CB0F6" : "#9ca3af"}
+                            variant={isListening ? "Bold" : "Outline"}
+                          />
+                        </motion.div>
+                        <span className="text-sm font-extrabold uppercase tracking-widest">
+                          {isListening
+                            ? 'Say "Assalam Alaikum"'
+                            : "Starting mic..."}
+                        </span>
+                      </div>
+                      <button
+                        onClick={triggerGoodbyeAnimation}
+                        className="btn-duo-primary w-full"
+                      >
+                        <TickSquare size="20" color="white" variant="Bold" />
+                        Assalam Alaikum!
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
               </div>
 
-              {/* Step 1 — Q1 options */}
-              {goodbyeStep === 1 && reflectionQs && (
-                <div className="w-full flex flex-col gap-3">
-                  <div className="flex flex-col gap-2 w-full">
-                    {reflectionQs[0].options.map((opt, i) => {
-                      const answered = reflectionA1 !== null;
-                      const isCorrect = i === reflectionQs[0].correct;
-                      const isSelected = reflectionA1 === i;
-                      return (
-                        <button
-                          key={i}
-                          onClick={() => {
-                            if (!answered) {
-                              setReflectionA1(i);
-                              if (i === reflectionQs[0].correct)
-                                queueAdvance(2);
-                            }
-                          }}
-                          className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
-                            !answered
-                              ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#F0F9FF] active:scale-95"
-                              : isCorrect
-                                ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
-                                : isSelected
-                                  ? "bg-[#1CB0F6]/12 border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]"
-                                  : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
-                          }`}
-                        >
-                          <span
-                            className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-black ${
-                              !answered
-                                ? "bg-[#1CB0F6]/12 text-[#1CB0F6] border border-[#1CB0F6]/35"
-                                : isCorrect
-                                  ? "bg-[#58CC02] text-white"
-                                  : isSelected
-                                    ? "bg-[#1CB0F6] text-white"
-                                    : "bg-gray-200 text-gray-500"
-                            }`}
-                          >
-                            {OPTION_LETTERS[i]}
-                          </span>
-                          <span className="flex-1">{opt}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {reflectionA1 !== null && (
-                    <p
-                      className={`text-xs font-bold text-center ${
-                        reflectionA1 === reflectionQs[0].correct
-                          ? "text-[#58CC02]"
-                          : "text-red-500"
-                      }`}
-                    >
-                      {reflectionA1 === reflectionQs[0].correct
-                        ? ""
-                        : `Not quite — the answer is: "${reflectionQs[0].options[reflectionQs[0].correct]}"`}
-                    </p>
-                  )}
-                  <button
-                    onClick={() => setGoodbyeStep(2)}
-                    disabled={reflectionA1 === null}
-                    className="btn-duo-primary w-full disabled:opacity-40"
-                  >
-                    <TickSquare size="20" color="white" variant="Bold" />
-                    {reflectionA1 === null
-                      ? "Pick one to continue"
-                      : reflectionA1 === reflectionQs[0].correct
-                        ? "Correct"
-                        : "Next"}
-                  </button>
-                </div>
-              )}
-              {goodbyeStep === 1 && !reflectionQs && (
-                <div className="w-full flex justify-center py-4">
-                  <div className="w-6 h-6 border-2 border-[#1CB0F6] border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
-
-              {/* Step 2 — Q2 options */}
-              {goodbyeStep === 2 && reflectionQs && (
-                <div className="w-full flex flex-col gap-3">
-                  <div className="flex flex-col gap-2 w-full">
-                    {reflectionQs[1].options.map((opt, i) => {
-                      const answered = reflectionA2 !== null;
-                      const isCorrect = i === reflectionQs[1].correct;
-                      const isSelected = reflectionA2 === i;
-                      return (
-                        <button
-                          key={i}
-                          onClick={() => {
-                            if (!answered) {
-                              setReflectionA2(i);
-                              if (i === reflectionQs[1].correct)
-                                queueAdvance(3);
-                            }
-                          }}
-                          className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
-                            !answered
-                              ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#F0F9FF] active:scale-95"
-                              : isCorrect
-                                ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
-                                : isSelected
-                                  ? "bg-[#1CB0F6]/12 border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]"
-                                  : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
-                          }`}
-                        >
-                          <span
-                            className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-black ${
-                              !answered
-                                ? "bg-[#1CB0F6]/12 text-[#1CB0F6] border border-[#1CB0F6]/35"
-                                : isCorrect
-                                  ? "bg-[#58CC02] text-white"
-                                  : isSelected
-                                    ? "bg-[#1CB0F6] text-white"
-                                    : "bg-gray-200 text-gray-500"
-                            }`}
-                          >
-                            {OPTION_LETTERS[i]}
-                          </span>
-                          <span className="flex-1">{opt}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {reflectionA2 !== null && (
-                    <p
-                      className={`text-xs font-bold text-center ${
-                        reflectionA2 === reflectionQs[1].correct
-                          ? "text-[#58CC02]"
-                          : "text-red-500"
-                      }`}
-                    >
-                      {reflectionA2 === reflectionQs[1].correct
-                        ? ""
-                        : `Not quite — the answer is: "${reflectionQs[1].options[reflectionQs[1].correct]}"`}
-                    </p>
-                  )}
-                  <button
-                    onClick={() => setGoodbyeStep(3)}
-                    disabled={reflectionA2 === null}
-                    className="btn-duo-primary w-full disabled:opacity-40"
-                  >
-                    <TickSquare size="20" color="white" variant="Bold" />
-                    {reflectionA2 === null
-                      ? "Pick one to continue"
-                      : reflectionA2 === reflectionQs[1].correct
-                        ? "Correct"
-                        : "Continue"}
-                  </button>
-                </div>
-              )}
-
-              {/* Step 3 — farewell + mic */}
-              {goodbyeStep === 3 && (
-                <div className="w-full flex flex-col items-center gap-3">
-                  <div
-                    className={`flex items-center gap-3 px-5 py-3 rounded-2xl border-2 w-full justify-center transition-all ${
-                      isListening
-                        ? "border-[#1CB0F6] bg-[#1CB0F6]/5 text-[#1CB0F6]"
-                        : "border-gray-200 bg-gray-50 text-gray-400"
-                    }`}
-                  >
-                    <motion.div
-                      animate={isListening ? { scale: [1, 1.25, 1] } : {}}
-                      transition={{ duration: 1, repeat: Infinity }}
-                    >
-                      <Microphone2
-                        size="24"
-                        color={isListening ? "#1CB0F6" : "#9ca3af"}
-                        variant={isListening ? "Bold" : "Outline"}
-                      />
-                    </motion.div>
-                    <span className="text-sm font-extrabold uppercase tracking-widest">
-                      {isListening
-                        ? 'Say "Assalam Alaikum"'
-                        : "Starting mic..."}
-                    </span>
-                  </div>
-                  <button
-                    onClick={triggerGoodbyeAnimation}
-                    className="btn-duo-primary w-full"
-                  >
-                    <TickSquare size="20" color="white" variant="Bold" />
-                    Assalam Alaikum!
-                  </button>
-                </div>
-              )}
-            </motion.div>
-          </div>
-
-          {/* Noorain character (Placed at bottom, absolutely positioned) */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[68vw] max-w-[280px] md:max-w-[340px] aspect-square z-10 pointer-events-none translate-y-[-5%]">
-            <motion.img
-              key={goodbyeStep}
-              initial={{ scale: 0.85, opacity: 0, y: 16 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              src="/newcharacters/Waving.png"
-              className="w-full h-full object-contain pointer-events-none origin-center"
-            />
-          </div>
+              {/* ── Bottom: Character on mat ── */}
+              <div className="w-full shrink-0 flex items-end justify-center" style={{ height: "42%" }}>
+                <motion.img
+                  key={goodbyeStep}
+                  initial={{ scale: 0.85, opacity: 0, y: 16 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  src="/newcharacters/Waving.png"
+                  className="h-full w-auto object-contain object-bottom pointer-events-none"
+                />
+              </div>
 
         </div>
       </motion.div>
