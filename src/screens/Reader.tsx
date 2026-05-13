@@ -715,8 +715,7 @@ export function Reader({
             className="fixed inset-0 bg-white/95 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-8"
           >
             <div 
-              className="w-full h-full md:max-h-[850px] max-w-2xl mx-auto md:rounded-3xl flex flex-col items-center justify-start px-4 md:px-8 pb-0 overflow-hidden bg-cover bg-bottom bg-no-repeat relative"
-              style={{ backgroundImage: bgImage }}
+              className="w-full h-full md:max-h-[850px] max-w-2xl mx-auto md:rounded-3xl flex flex-col items-center justify-start px-4 md:px-8 pb-0 overflow-hidden bg-white relative"
             >
             {/* ── Top: Question + Options ── */}
               <div className="flex-1 w-full flex flex-col justify-end items-center px-4 md:px-8 pt-6 pb-4 z-20 min-h-0">
@@ -939,8 +938,8 @@ export function Reader({
                 </motion.div>
               </div>
 
-              {/* ── Bottom: Character on mat ── */}
-              <div className="w-full shrink-0 flex items-end justify-center" style={{ height: "42%" }}>
+              {/* ── Bottom: Character ── */}
+              <div className="w-full shrink-0 flex items-end justify-center pb-6" style={{ height: "30%" }}>
                 <motion.img
                   key={goodbyeStep}
                   initial={{ scale: 0.85, opacity: 0, y: 16 }}
