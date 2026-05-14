@@ -1,4 +1,6 @@
-const QF_AUTH_BASE = "https://oauth2.quran.foundation";
+const QF_AUTH_BASE =
+  (import.meta.env.VITE_QF_AUTH_BASE as string) ||
+  "https://oauth2.quran.foundation";
 const CLIENT_ID = import.meta.env.VITE_QURAN_CLIENT_ID as string;
 const SCOPES = "openid offline_access user";
 

@@ -1,3 +1,6 @@
+const QF_AUTH_BASE =
+  process.env.QF_AUTH_BASE || "https://oauth2.quran.foundation";
+
 export default async function handler(req, res) {
   if (req.method === "OPTIONS") {
     return res.status(204).end();
@@ -25,8 +28,10 @@ export default async function handler(req, res) {
       code_verifier: codeVerifier,
     });
 
-    const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
-    const response = await fetch("https://oauth2.quran.foundation/oauth2/token", {
+    const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString(
+      "base64",
+    );
+    const response = await fetch(`${QF_AUTH_BASE}/oauth2/token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
