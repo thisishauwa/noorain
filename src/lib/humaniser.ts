@@ -12,10 +12,28 @@ export function humanizeNoorainQuestion(text: string, surahName: string) {
   }
 
   result = result.replace(/\s+—\s+—/g, " — ");
-  result = result.replace(/\?\?+/g, "?");
+  result = result.replace(/\??\?+/g, "?");
 
   if (result.length > 120) {
     result = result.slice(0, 117).trimEnd() + "...";
+  }
+
+  return result;
+}
+
+export function humanizeTafsirNote(text: string): string {
+  let result = text.trim();
+
+  // Strip common AI filler openers
+  result = result
+    .replace(/^(this (verse|passage|ayah|text|surah)) (reminds us|teaches us|shows|tells us|emphasizes|highlights|underscores|conveys|reveals|illustrates)[^,.]*[,.]\s*/i, "")
+    .replace(/^(the (tafsir|commentary|explanation))[^,.]*[,.]\s*/i, "")
+    .replace(/^(in this (verse|passage|ayah),?\s*)/i, "")
+    .replace(/^(it is (important|worth noting|clear) (to (note|understand|remember))?[^,.]*[,.]\s*)/i, "");
+
+  // Add warm Noorain opener if it sounds too clinical
+  if (result && !/(subhanallah|mashallah|you know|ibn kathir|this is actually|wait —|actually,|so —)/i.test(result.slice(0, 40))) {
+    result = `SubhanAllah — ${result.charAt(0).toLowerCase()}${result.slice(1)}`;
   }
 
   return result;

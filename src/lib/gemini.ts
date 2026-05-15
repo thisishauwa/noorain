@@ -1,4 +1,4 @@
-import { humanizeNoorainQuestion } from "./humaniser";
+import { humanizeNoorainQuestion, humanizeTafsirNote } from "./humaniser";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const KEY_HINT = API_KEY ? API_KEY.slice(-4) : "none";
@@ -18,16 +18,25 @@ export interface ReflectionQuestion {
 }
 
 export async function summarizeTafsir(tafsirHtml: string): Promise<string> {
-  if (!API_KEY) return "I can't summarize this right now, but it's a beautiful lesson!";
-  
-  // Basic HTML strip to save tokens
-  const plainText = tafsirHtml.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').slice(0, 3000);
+  if (!API_KEY) return "SubhanAllah — this verse is calling you to reflect.";
 
-  const prompt = `You are Noorain, a warm Quran companion reading alongside the user. Sound human, affectionate, and slightly quirky.
-The user is reading Ibn Kathir's Tafsir for a verse, but it's too long.
-Here is the Tafsir: "${plainText}"
+  // Strip HTML and limit tokens
+  const plainText = tafsirHtml.replace(/<[^>]*>?/gm, " ").replace(/\s+/g, " ").trim().slice(0, 2500);
 
-Please summarize the core lesson of this Tafsir in 2-3 short, inspiring sentences. Speak directly to the user as their companion. Keep it simple and easy to understand.`;
+  const prompt = `You are Noorain, a warm Quran companion. A user just opened Ibn Kathir's tafsir for a verse.
+
+Here is the tafsir text:
+"${plainText}"
+
+Write exactly 2 short sentences — total max 45 words — that tell the user one SPECIFIC, concrete thing from this tafsir:
+- A historical context (when/why this was revealed)
+- What a specific word or name in the verse means
+- A specific command, promise, or warning Allah makes
+- A specific person or event mentioned
+
+Forbidden words: profound, wisdom, deep, emphasizes, reminds us, reflects, underscores, highlights, illustrates, conveys, spiritual journey.
+Start with: "Ibn Kathir says", "You know what?", "This was actually", "SubhanAllah —", or "So —".
+Sound like a friend talking, not an essay.`;
 
   try {
     const res = await fetch(`${ENDPOINT}?key=${API_KEY}`, {
@@ -36,19 +45,19 @@ Please summarize the core lesson of this Tafsir in 2-3 short, inspiring sentence
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.6,
-          maxOutputTokens: 250,
+          temperature: 0.5,
+          maxOutputTokens: 120,
           thinkingConfig: { thinkingBudget: 0 },
         },
       }),
     });
-    if (!res.ok) return "I couldn't summarize this right now, but it has a wonderful meaning!";
+    if (!res.ok) return "SubhanAllah — this verse carries a beautiful meaning.";
     const data = await res.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    return text ? text.trim() : "It's a deep verse with many lessons.";
+    return text ? humanizeTafsirNote(text.trim()) : "SubhanAllah — this verse carries a beautiful meaning.";
   } catch (err) {
     console.error("[Gemini] summarizeTafsir error:", err);
-    return "I couldn't summarize this right now, but it has a wonderful meaning!";
+    return "SubhanAllah — this verse carries a beautiful meaning.";
   }
 }
 

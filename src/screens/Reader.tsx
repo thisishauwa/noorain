@@ -993,7 +993,7 @@ export function Reader({
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 left-0 right-0 h-[80vh] bg-white rounded-t-3xl shadow-2xl z-70 flex flex-col"
+              className="fixed bottom-0 left-0 right-0 max-w-2xl mx-auto h-[80vh] bg-white rounded-t-3xl shadow-2xl z-70 flex flex-col"
             >
               <div className="flex items-center justify-between p-5 border-b-2 border-gray-100">
                 <div>
@@ -1016,7 +1016,7 @@ export function Reader({
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-5 pb-10 bg-gray-50/50">
+              <div className="flex-1 overflow-y-auto p-5 pb-10 bg-white">
                 {loadingTafsir ? (
                   <div className="flex justify-center items-center h-40">
                     <div className="animate-spin w-8 h-8 border-4 border-gray-200 border-t-[#1CB0F6] rounded-full" />
@@ -1024,7 +1024,7 @@ export function Reader({
                 ) : tafsirData ? (
                   <div className="flex flex-col gap-6">
                     {/* AI Summary Section */}
-                    <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div className="card-duo p-5 relative overflow-hidden">
                       <div className="absolute -top-4 -right-4 w-20 h-20 bg-[#1CB0F6]/5 rounded-full blur-xl pointer-events-none" />
                       {!aiSummary && !loadingAiSummary ? (
                         <div className="flex flex-col items-center text-center gap-3 relative z-10">
@@ -1038,7 +1038,7 @@ export function Reader({
                           </div>
                           <div>
                             <h4 className="font-bold text-gray-800 text-sm">Too long to read?</h4>
-                            <p className="text-xs text-gray-500 mt-1">Let Noorain read it and tell you the main lesson.</p>
+                            <p className="text-xs text-gray-500 mt-1">Noorain can simplify and tell you the main lesson.</p>
                           </div>
                           <button
                             onClick={async () => {
@@ -1047,9 +1047,9 @@ export function Reader({
                               setAiSummary(summary);
                               setLoadingAiSummary(false);
                             }}
-                            className="mt-2 w-full py-3 bg-gradient-to-r from-[#1CB0F6] to-[#0A84C6] text-white rounded-xl font-bold text-sm shadow-md shadow-[#1CB0F6]/20 active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+                            className="btn-duo-primary mt-2 w-full"
                           >
-                            <span>✨</span> Simplify with Noorain
+                            Do it, please
                           </button>
                         </div>
                       ) : loadingAiSummary ? (
@@ -1061,10 +1061,10 @@ export function Reader({
                               transition={{ duration: 1.5, repeat: Infinity }}
                             />
                             <motion.img 
-                              src="/newcharacters/Thinking.png" 
+                              src={`/newcharacters/${moodInfo.asset}`}
                               className="w-full h-full object-contain"
-                              animate={{ y: [0, -3, 0] }}
-                              transition={{ duration: 1, repeat: Infinity }}
+                              animate={{ y: [0, -4, 0] }}
+                              transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
                             />
                           </div>
                           <p className="text-xs font-bold text-[#1CB0F6] uppercase tracking-widest animate-pulse">Noorain is reading...</p>
@@ -1085,7 +1085,7 @@ export function Reader({
                     </div>
 
                     {/* Original Tafsir Content */}
-                    <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <div className="card-duo p-6">
                       <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-100">
                         <Book1 size="20" color="#9ca3af" variant="Bulk" />
                         <h4 className="font-bold text-gray-400 text-sm">Full Text (Ibn Kathir)</h4>
@@ -1098,8 +1098,8 @@ export function Reader({
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center mt-20 gap-4">
-                    <img src="/newcharacters/Confused.png" className="w-16 h-16 opacity-50 grayscale" />
-                    <div className="text-center text-gray-400 font-bold">Failed to load Tafsir</div>
+                    <img src="/newcharacters/Waving.png" className="w-16 h-16 opacity-50 grayscale" />
+                    <div className="text-center text-gray-400 font-bold">Failed to load tafsir</div>
                   </div>
                 )}
               </div>
@@ -1124,7 +1124,7 @@ export function Reader({
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 left-0 right-0 h-[85vh] bg-white rounded-t-3xl shadow-2xl z-70 flex flex-col"
+              className="fixed bottom-0 left-0 right-0 max-w-2xl mx-auto h-[85vh] bg-white rounded-t-3xl shadow-2xl z-70 flex flex-col"
             >
               <div className="flex items-center justify-between p-5 border-b border-gray-100">
                 <h3 className="font-display text-xl text-gray-800">

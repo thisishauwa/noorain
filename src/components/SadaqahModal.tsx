@@ -14,6 +14,15 @@ interface Props {
 }
 
 export function SadaqahModal({ show, meals, onClose }: Props) {
+  const handleShare = async () => {
+    const text = `${meals} ${meals === 1 ? "child" : "children"} got lunch today because I read my Qur'an.\n\nHelp feed more kids 👇\nhttps://noorain-app.vercel.app`;
+    if (navigator.share) {
+      try { await navigator.share({ text }); } catch {}
+    } else {
+      try { await navigator.clipboard.writeText(text); } catch {}
+    }
+  };
+
   return (
     <AnimatePresence>
       {show && (
@@ -22,8 +31,7 @@ export function SadaqahModal({ show, meals, onClose }: Props) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center px-6 py-8 overflow-y-auto"
-          style={{ background: "#1CB0F6" }}
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white px-6 py-8 overflow-y-auto"
         >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -32,9 +40,9 @@ export function SadaqahModal({ show, meals, onClose }: Props) {
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-center text-center max-w-sm w-full"
           >
-            {/* Arabic dua — leads the moment */}
+            {/* Arabic dua */}
             <p
-              className="font-arabic text-5xl text-white mb-8 leading-loose"
+              className="font-arabic text-5xl text-[#1CB0F6] mb-8 leading-loose"
               dir="rtl"
             >
               بَارَكَ اللهُ فِيكَ
@@ -51,33 +59,30 @@ export function SadaqahModal({ show, meals, onClose }: Props) {
             />
 
             {/* Headline */}
-            <h2 className="text-2xl font-black text-white leading-snug mb-2">
+            <h2 className="text-2xl font-black text-gray-900 leading-snug mb-2">
               Noorain donated on your behalf.
             </h2>
-            <p className="text-white/60 text-sm font-semibold mb-8 leading-relaxed">
-              {meals} meal{meals !== 1 ? "s" : ""} given to children in need, in
-              your name.
+            <p className="text-gray-400 text-sm font-semibold mb-8 leading-relaxed">
+              {meals} meal{meals !== 1 ? "s" : ""} given to children in need, in your name.
             </p>
 
             {/* Donor feed */}
-            <div className="w-full rounded-2xl border border-white/20 mb-8 overflow-hidden">
-              <div className="px-4 py-3 border-b border-white/10">
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-white/40">
+            <div className="w-full card-duo mb-8 overflow-hidden">
+              <div className="px-4 py-3 border-b-2 border-gray-100">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
                   Reading with you today
                 </p>
               </div>
               {MOCK_DONORS.map((d, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between px-4 py-3 border-b border-white/10 last:border-0"
+                  className="flex items-center justify-between px-4 py-3 border-b-2 border-gray-100 last:border-0"
                 >
                   <div className="text-left">
-                    <span className="text-sm font-bold text-white">
-                      {d.name}
-                    </span>
-                    <span className="text-xs text-white/40 ml-2">{d.city}</span>
+                    <span className="text-sm font-bold text-gray-800">{d.name}</span>
+                    <span className="text-xs text-gray-400 ml-2">{d.city}</span>
                   </div>
-                  <span className="text-xs font-extrabold text-green-300">
+                  <span className="text-xs font-extrabold text-[#58CC02]">
                     {d.meals} {d.meals === 1 ? "meal" : "meals"}
                   </span>
                 </div>
@@ -85,31 +90,18 @@ export function SadaqahModal({ show, meals, onClose }: Props) {
             </div>
 
             {/* Footer tag */}
-            <p className="text-[10px] font-extrabold uppercase tracking-widest text-white/25 mb-6">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-300 mb-6">
               Powered by Noorain Foundation
             </p>
 
-            {/* Share CTA */}
-            <button
-              onClick={async () => {
-                const text = `🤲 Noorain just gave sadaqah on my behalf — ${meals} meal${meals !== 1 ? "s" : ""} donated to children in need.\n\nEvery page of Quran I read makes Noorain happier, and when he's happiest, he gives.\n\nTry it: https://noorain-app.vercel.app`;
-                if (navigator.share) {
-                  try { await navigator.share({ text }); } catch {}
-                } else {
-                  try { await navigator.clipboard.writeText(text); } catch {}
-                }
-              }}
-              className="w-full bg-white/15 border-2 border-white/30 text-white py-4 rounded-2xl font-black text-base active:scale-[0.98] transition-transform mb-3"
-            >
-              🤲 Share your sadaqah
+            {/* Share */}
+            <button onClick={handleShare} className="btn-duo-secondary w-full mb-3">
+              Share your sadaqah
             </button>
 
-            {/* Keep Reading CTA */}
-            <button
-              onClick={onClose}
-              className="w-full bg-white text-[#1CB0F6] py-4 rounded-2xl font-black text-base active:scale-[0.98] transition-transform"
-            >
-              Keep Reading
+            {/* Keep reading */}
+            <button onClick={onClose} className="btn-duo-primary w-full">
+              Keep reading
             </button>
           </motion.div>
         </motion.div>
