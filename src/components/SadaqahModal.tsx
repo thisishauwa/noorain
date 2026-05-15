@@ -89,7 +89,22 @@ export function SadaqahModal({ show, meals, onClose }: Props) {
               Powered by Noorain Foundation
             </p>
 
-            {/* CTA */}
+            {/* Share CTA */}
+            <button
+              onClick={async () => {
+                const text = `🤲 Noorain just gave sadaqah on my behalf — ${meals} meal${meals !== 1 ? "s" : ""} donated to children in need.\n\nEvery page of Quran I read makes Noorain happier, and when he's happiest, he gives.\n\nTry it: https://noorain-app.vercel.app`;
+                if (navigator.share) {
+                  try { await navigator.share({ text }); } catch {}
+                } else {
+                  try { await navigator.clipboard.writeText(text); } catch {}
+                }
+              }}
+              className="w-full bg-white/15 border-2 border-white/30 text-white py-4 rounded-2xl font-black text-base active:scale-[0.98] transition-transform mb-3"
+            >
+              🤲 Share your sadaqah
+            </button>
+
+            {/* Keep Reading CTA */}
             <button
               onClick={onClose}
               className="w-full bg-white text-[#1CB0F6] py-4 rounded-2xl font-black text-base active:scale-[0.98] transition-transform"

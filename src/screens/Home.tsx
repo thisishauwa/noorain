@@ -45,6 +45,8 @@ export function Home({
   })();
 
   const getNoorSpeech = () => {
+    const hour = new Date().getHours();
+
     if (streak.current === 0 && streak.lastReadDate) {
       const days = Math.max(
         1,
@@ -55,12 +57,21 @@ export function Home({
       );
       return `Hungry kids haven't eaten in ${days} day${days !== 1 ? "s" : ""}… please come back 😢`;
     }
-    if (streak.current > 3) {
-      const d = (5 - new Date().getDay() + 7) % 7;
-      if (d === 0) return "Today is donation day! You made it happen.";
-      return `${d} day${d !== 1 ? "s" : ""} till I donate, keep your streak!`;
+
+    if (hasReadToday) {
+      if (streak.current > 3) {
+        const d = (5 - new Date().getDay() + 7) % 7;
+        if (d === 0) return "Today is donation day! You made it happen.";
+        return `${d} day${d !== 1 ? "s" : ""} till I donate, keep your streak!`;
+      }
+      return moodInfo.messageAfter;
     }
-    return hasReadToday ? moodInfo.messageAfter : moodInfo.message;
+
+    // Not read today — time-aware urgency
+    if (hour >= 21) return "Please… it's almost midnight. One page. That's all I need from you tonight. 🌙";
+    if (hour >= 18) return "Evening already. I've been waiting all day. Will you read with me tonight?";
+    if (hour >= 12) return `Afternoon. Still time. ${moodInfo.message}`;
+    return moodInfo.message;
   };
 
   const isMorning = new Date().getHours() >= 6 && new Date().getHours() < 18;
