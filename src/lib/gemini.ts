@@ -17,6 +17,41 @@ export interface ReflectionQuestion {
   correct: number;
 }
 
+export async function summarizeTafsir(tafsirHtml: string): Promise<string> {
+  if (!API_KEY) return "I can't summarize this right now, but it's a beautiful lesson!";
+  
+  // Basic HTML strip to save tokens
+  const plainText = tafsirHtml.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').slice(0, 3000);
+
+  const prompt = `You are Noorain, a warm Quran companion reading alongside the user. Sound human, affectionate, and slightly quirky.
+The user is reading Ibn Kathir's Tafsir for a verse, but it's too long.
+Here is the Tafsir: "${plainText}"
+
+Please summarize the core lesson of this Tafsir in 2-3 short, inspiring sentences. Speak directly to the user as their companion. Keep it simple and easy to understand.`;
+
+  try {
+    const res = await fetch(`${ENDPOINT}?key=${API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.6,
+          maxOutputTokens: 250,
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+      }),
+    });
+    if (!res.ok) return "I couldn't summarize this right now, but it has a wonderful meaning!";
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    return text ? text.trim() : "It's a deep verse with many lessons.";
+  } catch (err) {
+    console.error("[Gemini] summarizeTafsir error:", err);
+    return "I couldn't summarize this right now, but it has a wonderful meaning!";
+  }
+}
+
 /**
  * Generate 2 educational multiple-choice questions about what the user just read.
  * Each question has one correct answer that teaches something about the surah.

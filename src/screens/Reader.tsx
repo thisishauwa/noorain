@@ -11,7 +11,7 @@ import {
 import { useAppContext } from "../lib/store";
 import { getNoorMood } from "../lib/noor";
 import { useAuth } from "../lib/authContext";
-import { generateReflectionQuestions, ReflectionQuestion } from "../lib/gemini";
+import { generateReflectionQuestions, ReflectionQuestion, summarizeTafsir } from "../lib/gemini";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ArrowLeft2,
@@ -59,6 +59,8 @@ export function Reader({
   >(null);
   const [reflectionA1, setReflectionA1] = useState<number | null>(null);
   const [reflectionA2, setReflectionA2] = useState<number | null>(null);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [loadingAiSummary, setLoadingAiSummary] = useState(false);
 
   const [goodbyeStep, setGoodbyeStep] = useState<number>(0); // 0 = none, 1 = say goodbye, 2 = waving
   const [playingWordId, setPlayingWordId] = useState<number | null>(null);
@@ -231,12 +233,16 @@ export function Reader({
   useEffect(() => {
     if (activeTafsirAyah) {
       setLoadingTafsir(true);
+      setAiSummary(null);
+      setLoadingAiSummary(false);
       fetchTafsir(activeTafsirAyah).then((data) => {
         setTafsirData(data);
         setLoadingTafsir(false);
       });
     } else {
       setTafsirData(null);
+      setAiSummary(null);
+      setLoadingAiSummary(false);
     }
   }, [activeTafsirAyah]);
 
@@ -1010,19 +1016,90 @@ export function Reader({
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-5">
+              <div className="flex-1 overflow-y-auto p-5 pb-10 bg-gray-50/50">
                 {loadingTafsir ? (
                   <div className="flex justify-center items-center h-40">
                     <div className="animate-spin w-8 h-8 border-4 border-gray-200 border-t-[#1CB0F6] rounded-full" />
                   </div>
                 ) : tafsirData ? (
-                  <div
-                    className="prose prose-sm max-w-none text-gray-700 leading-relaxed prose-headings:font-bold prose-headings:text-gray-900 prose-p:mb-4"
-                    dangerouslySetInnerHTML={{ __html: tafsirData.text }}
-                  />
+                  <div className="flex flex-col gap-6">
+                    {/* AI Summary Section */}
+                    <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm relative overflow-hidden">
+                      <div className="absolute -top-4 -right-4 w-20 h-20 bg-[#1CB0F6]/5 rounded-full blur-xl pointer-events-none" />
+                      {!aiSummary && !loadingAiSummary ? (
+                        <div className="flex flex-col items-center text-center gap-3 relative z-10">
+                          <div className="w-12 h-12 bg-[#1CB0F6]/10 rounded-full flex items-center justify-center mb-1">
+                            <motion.img 
+                              src="/newcharacters/Waving.png" 
+                              className="w-8 h-8 object-contain"
+                              animate={{ rotate: [0, 10, -10, 0] }}
+                              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                            />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-gray-800 text-sm">Too long to read?</h4>
+                            <p className="text-xs text-gray-500 mt-1">Let Noorain read it and tell you the main lesson.</p>
+                          </div>
+                          <button
+                            onClick={async () => {
+                              setLoadingAiSummary(true);
+                              const summary = await summarizeTafsir(tafsirData.text);
+                              setAiSummary(summary);
+                              setLoadingAiSummary(false);
+                            }}
+                            className="mt-2 w-full py-3 bg-gradient-to-r from-[#1CB0F6] to-[#0A84C6] text-white rounded-xl font-bold text-sm shadow-md shadow-[#1CB0F6]/20 active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+                          >
+                            <span>✨</span> Simplify with Noorain
+                          </button>
+                        </div>
+                      ) : loadingAiSummary ? (
+                        <div className="flex flex-col items-center justify-center py-6 gap-4 relative z-10">
+                          <div className="relative w-12 h-12">
+                            <motion.div
+                              className="absolute inset-0 rounded-full border-2 border-[#1CB0F6]/20"
+                              animate={{ scale: [1, 1.2, 1], opacity: [1, 0, 1] }}
+                              transition={{ duration: 1.5, repeat: Infinity }}
+                            />
+                            <motion.img 
+                              src="/newcharacters/Thinking.png" 
+                              className="w-full h-full object-contain"
+                              animate={{ y: [0, -3, 0] }}
+                              transition={{ duration: 1, repeat: Infinity }}
+                            />
+                          </div>
+                          <p className="text-xs font-bold text-[#1CB0F6] uppercase tracking-widest animate-pulse">Noorain is reading...</p>
+                        </div>
+                      ) : (
+                        <div className="relative z-10">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-8 h-8 bg-[#1CB0F6]/10 rounded-full flex items-center justify-center shrink-0">
+                              <img src="/newcharacters/Hugs.png" className="w-5 h-5 object-contain" />
+                            </div>
+                            <span className="text-[11px] font-black uppercase tracking-widest text-[#1CB0F6]">Noorain's Note</span>
+                          </div>
+                          <div className="text-sm font-medium text-gray-700 leading-relaxed bg-[#1CB0F6]/5 p-4 rounded-xl border border-[#1CB0F6]/10">
+                            {aiSummary}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Original Tafsir Content */}
+                    <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                      <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-100">
+                        <Book1 size="20" color="#9ca3af" variant="Bulk" />
+                        <h4 className="font-bold text-gray-400 text-sm">Full Text (Ibn Kathir)</h4>
+                      </div>
+                      <div
+                        className="prose prose-sm max-w-none text-gray-600 leading-[1.8] prose-headings:font-bold prose-headings:text-gray-800 prose-headings:mt-6 prose-headings:mb-3 prose-p:mb-5 prose-a:text-[#1CB0F6] prose-blockquote:border-[#1CB0F6] prose-blockquote:bg-gray-50 prose-blockquote:px-4 prose-blockquote:py-2 prose-blockquote:rounded-r-xl prose-blockquote:text-gray-700 prose-blockquote:not-italic prose-strong:text-gray-800"
+                        dangerouslySetInnerHTML={{ __html: tafsirData.text }}
+                      />
+                    </div>
+                  </div>
                 ) : (
-                  <div className="text-center text-gray-400 mt-10 font-bold">
-                    Failed to load Tafsir
+                  <div className="flex flex-col items-center justify-center mt-20 gap-4">
+                    <img src="/newcharacters/Confused.png" className="w-16 h-16 opacity-50 grayscale" />
+                    <div className="text-center text-gray-400 font-bold">Failed to load Tafsir</div>
                   </div>
                 )}
               </div>
