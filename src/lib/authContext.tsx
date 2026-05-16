@@ -86,7 +86,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const saved = loadSavedSession();
-    if (saved) setAccessToken(saved.accessToken);
+    if (saved) {
+      setAccessToken(saved.accessToken);
+      // Upsert profile on every session restore so returning users stay current in Supabase
+      try {
+        const raw = localStorage.getItem(USER_PROFILE_KEY);
+        if (raw) {
+          const cached = JSON.parse(raw) as QFUser;
+          upsertUser(cached.sub, cached.name || "Anonymous", saved.accessToken);
+        }
+      } catch {}
+    }
     setIsReady(true);
   }, []);
 
