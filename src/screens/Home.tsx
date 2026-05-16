@@ -226,12 +226,13 @@ export function Home({
                 Noorain's Happiness
               </h3>
               <p className="text-gray-600 font-medium leading-relaxed mb-4">
-                Keep Noorain happy and every Friday the Noorain Foundation will
-                make a real food donation to charity on your behalf. The happier
-                he is, the more he gives.
+                Keep Noorain happy and every Friday, the Hawasleman Fund will
+                make a donation to a partner charity on your behalf — the
+                happier he is, the more he gives. Charity partnerships are
+                launching soon in sha' Allah.
               </p>
               <p className="text-[11px] text-gray-400 font-extrabold uppercase tracking-widest mb-6">
-                Noorain Foundation · Verified Charity
+                Hawasleman Fund · Sadaqah Program
               </p>
               <button
                 onClick={() => setShowInfo(false)}

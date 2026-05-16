@@ -34,22 +34,7 @@ function MainApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    const handleReset = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "d") {
-        [
-          "noorain_bookmark",
-          "noorain_streak",
-          "noorain_completed_juz",
-          "noorain_sadaqah",
-          "noorain_noor",
-        ].forEach((k) => localStorage.removeItem(k));
-        window.location.reload();
-      }
-    };
-    window.addEventListener("keydown", handleReset);
-    return () => window.removeEventListener("keydown", handleReset);
-  }, []);
+
 
   if (!isReady || isConnecting) {
     return <Landing />;

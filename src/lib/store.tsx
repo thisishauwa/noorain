@@ -50,8 +50,8 @@ const initialState: Omit<
   completedJuz: [],
   sadaqah: { meals: 0, completedJuz: [] },
   noor: {
-    moodScore: 55,
-    currentMood: "Finger biting",
+    moodScore: 70,
+    currentMood: "Winking",
     lastUpdated: null,
     sadaqahTrigger: false,
     lastFridayDonation: null,
@@ -142,6 +142,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       newScore = Math.max(0, Math.min(100, newScore));
       const moodInfo = getNoorMood(newScore);
       return {
+        ...prev,
         moodScore: newScore,
         currentMood: moodInfo.mood,
         lastUpdated: today,
@@ -168,6 +169,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       newScore = Math.max(0, Math.min(100, newScore));
       const moodInfo = getNoorMood(newScore);
       return {
+        ...prev,
         moodScore: newScore,
         currentMood: moodInfo.mood,
         lastUpdated: prev.lastUpdated,
