@@ -10,6 +10,7 @@ import { Home } from "./screens/Home";
 import { Browser } from "./screens/Browser";
 import { Reader } from "./screens/Reader";
 import { Landing } from "./screens/Landing";
+import { ProgressSync } from "./components/ProgressSync";
 
 function MainApp() {
   const { streak, evaluateStreak, bookmark } = useAppContext();
@@ -47,6 +48,7 @@ function MainApp() {
   return (
     <div className="min-h-dvh bg-white flex justify-center font-sans antialiased text-gray-800">
       <div className="w-full relative overflow-x-hidden flex flex-col">
+        <ProgressSync />
         {currentScreen === "home" && <Home onNavigate={(s) => navigateTo(s)} />}
         {currentScreen === "browser" && (
           <Browser

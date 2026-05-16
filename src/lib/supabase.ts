@@ -59,6 +59,53 @@ export async function fetchUserRank(userId: string): Promise<number | null> {
   return idx === -1 ? null : idx + 1;
 }
 
+// ── User Progress (cross-device sync) ────────────────────────────────────────
+
+export interface RemoteProgress {
+  bookmark_surah: number | null;
+  bookmark_ayah: number | null;
+  bookmark_page: number | null;
+  bookmark_juz: number | null;
+  bookmark_last_read: string | null;
+  streak_current: number;
+  streak_longest: number;
+  streak_last_date: string | null;
+  streak_history: string[];
+  mood_score: number;
+  sadaqah_meals: number;
+  completed_juz: number[];
+  updated_at: string;
+}
+
+/** Fetch user progress from Supabase (cross-device restore) */
+export async function fetchUserProgress(userId: string): Promise<RemoteProgress | null> {
+  if (!supabase || !userId) return null;
+  const { data, error } = await supabase
+    .from("noorain_progress")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+  if (error || !data) return null;
+  return data as RemoteProgress;
+}
+
+/** Save user progress to Supabase via secure server endpoint */
+export async function saveUserProgress(
+  progress: Omit<RemoteProgress, "updated_at">,
+  accessToken: string,
+): Promise<boolean> {
+  try {
+    const res = await fetch("/api/sb-record", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "save_progress", payload: progress, accessToken }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 // ── Write helpers (go through /api/sb-record — server-side service role) ──────
 
 /** Record a completed quiz score (server-validated) */

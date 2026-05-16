@@ -59,6 +59,34 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    if (type === "save_progress") {
+      const {
+        bookmark_surah, bookmark_ayah, bookmark_page, bookmark_juz, bookmark_last_read,
+        streak_current, streak_longest, streak_last_date, streak_history,
+        mood_score, sadaqah_meals, completed_juz,
+      } = payload;
+      const { error } = await supabase.from("noorain_progress").upsert(
+        {
+          user_id: qfUser.sub,
+          bookmark_surah: bookmark_surah ?? null,
+          bookmark_ayah: bookmark_ayah ?? null,
+          bookmark_page: bookmark_page ?? null,
+          bookmark_juz: bookmark_juz ?? null,
+          bookmark_last_read: bookmark_last_read ?? null,
+          streak_current: streak_current ?? 0,
+          streak_longest: streak_longest ?? 0,
+          streak_last_date: streak_last_date ?? null,
+          streak_history: streak_history ?? [],
+          mood_score: mood_score ?? 70,
+          sadaqah_meals: sadaqah_meals ?? 0,
+          completed_juz: completed_juz ?? [],
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" },
+      );
+      if (error) throw error;
+      return res.status(200).json({ ok: true });
+    }
     if (type === "quiz_score") {
       const { score, total_questions, surah_number, surah_name } = payload;
 

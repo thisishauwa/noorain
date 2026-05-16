@@ -39,6 +39,8 @@ interface AppState {
   markPageRead: (page: number, juz: number) => void;
   markJuzCompleted: (juz: number) => void;
   evaluateStreak: () => void;
+  /** Hydrate local state from Supabase — Supabase wins if it has more data */
+  hydrateFromRemote: (remote: import("./supabase").RemoteProgress) => void;
 }
 
 const initialState: Omit<
@@ -245,6 +247,61 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  /** Merge remote Supabase progress into local state.
+   *  Remote wins for anything that's "more advanced" (higher streak, more meals, etc.)
+   *  On a fresh device this means remote fills in everything. */
+  const hydrateFromRemote = (remote: import("./supabase").RemoteProgress) => {
+    // Bookmark: use remote if local has no bookmark or remote is more recent
+    if (remote.bookmark_surah != null) {
+      setBookmark((local) => {
+        if (!local) {
+          return {
+            surah: remote.bookmark_surah!,
+            ayah: remote.bookmark_ayah ?? 1,
+            page: remote.bookmark_page ?? 1,
+            juz: remote.bookmark_juz ?? 1,
+            lastRead: remote.bookmark_last_read ?? new Date().toISOString(),
+          };
+        }
+        // Keep whichever was read more recently
+        const localDate = new Date(local.lastRead).getTime();
+        const remoteDate = remote.bookmark_last_read
+          ? new Date(remote.bookmark_last_read).getTime()
+          : 0;
+        return remoteDate > localDate
+          ? {
+              surah: remote.bookmark_surah!,
+              ayah: remote.bookmark_ayah ?? 1,
+              page: remote.bookmark_page ?? 1,
+              juz: remote.bookmark_juz ?? 1,
+              lastRead: remote.bookmark_last_read ?? local.lastRead,
+            }
+          : local;
+      });
+    }
+    // Streak: take whichever is higher
+    setStreak((local) => ({
+      current: Math.max(local.current, remote.streak_current ?? 0),
+      longest: Math.max(local.longest, remote.streak_longest ?? 0),
+      lastReadDate: remote.streak_last_date ?? local.lastReadDate,
+      history: Array.from(new Set([...local.history, ...(remote.streak_history ?? [])])),
+    }));
+    // Noor mood: take highest (most earned)
+    setNoor((local) => ({
+      ...local,
+      moodScore: Math.max(local.moodScore, remote.mood_score ?? 0),
+    }));
+    // Sadaqah: take highest
+    setSadaqah((local) => ({
+      meals: Math.max(local.meals, remote.sadaqah_meals ?? 0),
+      completedJuz: Array.from(new Set([...local.completedJuz, ...(remote.completed_juz ?? [])])),
+    }));
+    // CompletedJuz: merge
+    setCompletedJuz((local) =>
+      Array.from(new Set([...local, ...(remote.completed_juz ?? [])]))
+    );
+  };
+
   if (!isLoaded) return null;
 
   return (
@@ -259,6 +316,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         markPageRead,
         markJuzCompleted,
         evaluateStreak,
+        hydrateFromRemote,
       }}
     >
       {children}

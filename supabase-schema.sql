@@ -15,6 +15,38 @@ CREATE TABLE IF NOT EXISTS noorain_users (
 -- Migration: add email to existing deployments (safe to re-run)
 ALTER TABLE noorain_users ADD COLUMN IF NOT EXISTS email TEXT;
 
+-- 1b. User progress (cross-device persistence)
+CREATE TABLE IF NOT EXISTS noorain_progress (
+  user_id             TEXT PRIMARY KEY,
+  bookmark_surah      INT,
+  bookmark_ayah       INT,
+  bookmark_page       INT,
+  bookmark_juz        INT,
+  bookmark_last_read  TEXT,
+  streak_current      INT  DEFAULT 0,
+  streak_longest      INT  DEFAULT 0,
+  streak_last_date    TEXT,
+  streak_history      JSONB DEFAULT '[]',
+  mood_score          INT  DEFAULT 70,
+  sadaqah_meals       INT  DEFAULT 0,
+  completed_juz       JSONB DEFAULT '[]',
+  updated_at          TIMESTAMPTZ DEFAULT now()
+);
+
+-- Migration for existing deployments (safe to re-run)
+ALTER TABLE noorain_progress ADD COLUMN IF NOT EXISTS bookmark_surah     INT;
+ALTER TABLE noorain_progress ADD COLUMN IF NOT EXISTS bookmark_ayah      INT;
+ALTER TABLE noorain_progress ADD COLUMN IF NOT EXISTS bookmark_page      INT;
+ALTER TABLE noorain_progress ADD COLUMN IF NOT EXISTS bookmark_juz       INT;
+ALTER TABLE noorain_progress ADD COLUMN IF NOT EXISTS bookmark_last_read TEXT;
+ALTER TABLE noorain_progress ADD COLUMN IF NOT EXISTS streak_current     INT  DEFAULT 0;
+ALTER TABLE noorain_progress ADD COLUMN IF NOT EXISTS streak_longest     INT  DEFAULT 0;
+ALTER TABLE noorain_progress ADD COLUMN IF NOT EXISTS streak_last_date   TEXT;
+ALTER TABLE noorain_progress ADD COLUMN IF NOT EXISTS streak_history     JSONB DEFAULT '[]';
+ALTER TABLE noorain_progress ADD COLUMN IF NOT EXISTS mood_score         INT  DEFAULT 70;
+ALTER TABLE noorain_progress ADD COLUMN IF NOT EXISTS sadaqah_meals      INT  DEFAULT 0;
+ALTER TABLE noorain_progress ADD COLUMN IF NOT EXISTS completed_juz      JSONB DEFAULT '[]';
+
 -- 2. Quiz scores (individual attempts)
 CREATE TABLE IF NOT EXISTS noorain_quiz_scores (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -44,6 +76,7 @@ GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT SELECT ON noorain_users    TO anon, authenticated;
 GRANT SELECT ON noorain_quiz_scores TO anon, authenticated;
 GRANT SELECT ON noorain_leaderboard TO anon, authenticated;
+GRANT SELECT ON noorain_progress    TO anon, authenticated;
 
 -- ── Enable RLS ───────────────────────────────────────────────────────────────
 ALTER TABLE noorain_users        ENABLE ROW LEVEL SECURITY;
