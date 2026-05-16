@@ -13,7 +13,8 @@ export function Home({
   onNavigate: (screen: "home" | "browser" | "reader") => void;
 }) {
   const { streak, sadaqah, noor, bookmark } = useAppContext();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const firstName = user?.name?.split(" ")[0] ?? user?.preferred_username ?? null;
   const [showSadaqah, setShowSadaqah] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const moodInfo = getNoorMood(noor.moodScore);
@@ -46,6 +47,7 @@ export function Home({
 
   const getNoorSpeech = () => {
     const hour = new Date().getHours();
+    const name = firstName ? `, ${firstName}` : "";
 
     if (streak.current === 0 && streak.lastReadDate) {
       const days = Math.max(
@@ -55,23 +57,23 @@ export function Home({
             (1000 * 3600 * 24),
         ),
       );
-      return `Hungry kids haven't eaten in ${days} day${days !== 1 ? "s" : ""}… please come back 😢`;
+      return `${firstName ? firstName + ", " : ""}hungry kids haven't eaten in ${days} day${days !== 1 ? "s" : ""}… please come back 😢`;
     }
 
     if (hasReadToday) {
       if (streak.current > 3) {
         const d = (5 - new Date().getDay() + 7) % 7;
-        if (d === 0) return "Today is donation day! You made it happen.";
-        return `${d} day${d !== 1 ? "s" : ""} till I donate, keep your streak!`;
+        if (d === 0) return `Today is donation day${name}! You made it happen.`;
+        return `${d} day${d !== 1 ? "s" : ""} till I donate — keep your streak!`;
       }
       return moodInfo.messageAfter;
     }
 
     // Not read today — time-aware urgency
-    if (hour >= 21) return "Please… it's almost midnight. One page. That's all I need from you tonight. 🌙";
-    if (hour >= 18) return "Evening already. I've been waiting all day. Will you read with me tonight?";
-    if (hour >= 12) return `Afternoon. Still time. ${moodInfo.message}`;
-    return moodInfo.message;
+    if (hour >= 21) return `${firstName ? firstName + " — p" : "P"}lease… it's almost midnight. One page. That's all I need. 🌙`;
+    if (hour >= 18) return `Evening already${name}. I've been waiting all day — will you read with me tonight?`;
+    if (hour >= 12) return `Afternoon. Still time${name}. ${moodInfo.message}`;
+    return firstName ? `${moodInfo.message}` : moodInfo.message;
   };
 
   const isMorning = new Date().getHours() >= 6 && new Date().getHours() < 18;
@@ -86,7 +88,7 @@ export function Home({
         <div className="flex justify-between items-center w-full mt-2">
           <div className="flex flex-col whitespace-nowrap">
             <h1 className="text-[22px] sm:text-2xl md:text-[28px] font-display text-gray-900 leading-none">
-              Assalam Alaikum
+              Assalam Alaikum{firstName ? `, ${firstName}` : ""}
             </h1>
             <p className="hidden md:block text-base text-gray-400 mt-0.5">
               Let's read today.
@@ -164,18 +166,16 @@ export function Home({
           className="flex flex-col items-center justify-end w-full h-full max-h-[600px] relative bg-cover bg-bottom bg-no-repeat rounded-3xl pb-6 md:pb-8 px-4 md:px-8 overflow-hidden"
           style={{ backgroundImage: bgImage }}
         >
-          {/* Speech Bubble (in flow, right above character, hugging content) */}
-          <div className="relative inline-block bg-white border-2 border-gray-200 border-b-4 rounded-2xl p-4 md:p-5 z-20 text-center shadow-lg mb-8 md:mb-12 max-w-[85%] mx-auto">
-            {/* Tail pointing DOWN to character */}
+          {/* Speech Bubble */}
+          <div className="relative inline-block bg-white border-2 border-gray-200 border-b-4 rounded-2xl p-4 md:p-5 z-20 text-center shadow-lg mb-8 md:mb-12 max-w-[85%] md:max-w-sm mx-auto">
             <div className="absolute bottom-[-11px] left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-b-4 border-r-4 border-gray-200 rotate-45 rounded-br-[3px]"></div>
-
-            <span className="text-[17px] md:text-lg font-bold text-gray-700 leading-snug">
+            <span className="text-base md:text-[17px] font-bold text-gray-700 leading-snug">
               "{getNoorSpeech()}"
             </span>
           </div>
 
-          {/* Character */}
-          <div className="w-[52vw] max-w-[280px] md:max-w-[340px] aspect-square shrink-0 relative z-10 overflow-visible translate-y-[-20%]">
+          {/* Character — smaller on desktop so it doesn't dominate */}
+          <div className="w-[52vw] max-w-[260px] md:max-w-[220px] aspect-square shrink-0 relative z-10 overflow-visible translate-y-[-20%]">
             <NoorCharacter moodScore={noor.moodScore} />
           </div>
         </div>

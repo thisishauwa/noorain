@@ -19,6 +19,8 @@ import {
   type QFUser,
 } from "./oauth";
 
+const USER_PROFILE_KEY = "qf_user_profile";
+
 export type { QFUser };
 
 interface AuthState {
@@ -46,6 +48,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const readingDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    // Restore persisted profile immediately (name shows before token check)
+    try {
+      const savedProfile = localStorage.getItem(USER_PROFILE_KEY);
+      if (savedProfile) setUser(JSON.parse(savedProfile));
+    } catch {}
+
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
     const state = params.get("state");
@@ -60,7 +68,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setAccessToken(tokens.accessToken);
             if (tokens.idToken) {
               const decoded = parseIdToken(tokens.idToken);
-              if (decoded) setUser(decoded);
+              if (decoded) {
+                setUser(decoded);
+                try { localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(decoded)); } catch {}
+              }
             }
           }
         })
@@ -87,6 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     clearTokens();
+    try { localStorage.removeItem(USER_PROFILE_KEY); } catch {}
     setGuestMode(false);
     setIsGuest(false);
     setAccessToken(null);
