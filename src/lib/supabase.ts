@@ -84,7 +84,7 @@ export async function fetchUserProgress(userId: string): Promise<RemoteProgress 
     .from("noorain_progress")
     .select("*")
     .eq("user_id", userId)
-    .single();
+    .maybeSingle();
   if (error || !data) return null;
   return data as RemoteProgress;
 }

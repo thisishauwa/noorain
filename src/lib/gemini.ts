@@ -24,24 +24,28 @@ export async function summarizeTafsir(tafsirHtml: string): Promise<string> {
   // Strip HTML and limit tokens
   const plainText = tafsirHtml.replace(/<[^>]*>?/gm, " ").replace(/\s+/g, " ").trim().slice(0, 3500);
 
-  const prompt = `You are summarising Ibn Kathir's tafsir for a Quran reader. Extract the most important facts from this commentary and present them as 3-5 short bullet points.
+  const prompt = `You are a knowledgeable Islamic teacher helping a reader understand what they just read in Ibn Kathir's tafsir.
+
+Read this tafsir and decide what the reader MOST needs to know. Think like an editor, not a secretary — don't just list facts, choose the important ones.
 
 TAFSIR TEXT:
 "${plainText}"
 
-RULES:
-- Each bullet must state a SPECIFIC fact: an actual ruling, a fraction (like "sisters get one-third"), a name of a companion, a specific event, a hadith, or a cause of revelation.
-- DO NOT write meta-commentary like "Ibn Kathir discusses..." or "this verse teaches..." — STATE the thing itself.
-- If there is a ruling about inheritance, prayer, halal/haram — state the exact ruling.
-- If there is a hadith, say who narrated it and what they said.
-- If there is a historical event (who asked, when it was revealed, what happened) — name who was involved.
-- Keep each bullet to 1-2 sentences maximum.
-- Write in plain English. No markdown. Use • as the bullet character.
+WHAT TO INCLUDE (prioritised):
+1. The actual ruling or command — what is permitted, forbidden, obligatory, or recommended
+2. The meaning of any Quranic term explained in the text (e.g. what "Al-Kalalah" actually means)
+3. What the Prophet ﷺ said or ruled — just the ruling itself, not the story of how it was asked
+4. Key scholarly agreement or disagreement and who was on which side
+5. Why this verse was revealed, if that context changes the meaning
 
-FORMAT YOUR RESPONSE EXACTLY LIKE THIS (no intro, no outro, just bullets):
-• [fact 1]
-• [fact 2]
-• [fact 3]`;
+WHAT TO LEAVE OUT:
+- The narrative setup (who was traveling, who was ill, how someone asked the question)
+- Chains of narrators (just say "Ibn Abbas said" not who reported it from whom)  
+- Repeated points
+- Anything that doesn't help the reader understand what this verse means or requires of them
+
+Write 3-5 bullet points. Each bullet = one thing the reader needs to know, stated directly.
+Use • as the bullet character. Plain text only. No intro. No outro. Just bullets.`;
 
   try {
     const res = await fetch(`${ENDPOINT}?key=${API_KEY}`, {
@@ -58,7 +62,6 @@ FORMAT YOUR RESPONSE EXACTLY LIKE THIS (no intro, no outro, just bullets):
     });
     const data = await res.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    // Return raw bullet points — skip humanizer which breaks the format
     return text ? text.trim() : "Open the full tafsir below to read Ibn Kathir's commentary.";
   } catch (err) {
     console.error("[Gemini] summarizeTafsir error:", err);

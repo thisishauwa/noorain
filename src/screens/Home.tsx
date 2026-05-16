@@ -29,7 +29,7 @@ export function Home({
   const displayName = nickname || user?.name || null;
   const firstName = displayName?.split(" ")[0] ?? null;
   const initial = displayName?.[0]?.toUpperCase() ?? "?";
-  const subLabel = user?.email ?? user?.preferred_username ?? "Quran.com member";
+  const subLabel = user?.email ?? user?.preferred_username ?? "Noorain Member";
 
   const [showSadaqah, setShowSadaqah] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
@@ -279,9 +279,9 @@ export function Home({
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white rounded-3xl p-6 w-full max-w-sm relative z-10 shadow-2xl">
               <h3 className="font-display text-2xl mb-3 text-gray-800">Noorain's Happiness</h3>
               <p className="text-gray-600 font-medium leading-relaxed mb-4">
-                Keep Noorain happy and every Friday, the Hawasleman Fund will make a donation to a partner charity on your behalf. The happier he is, the more he gives. Charity partnerships are launching soon in sha' Allah.
+                Keep Noorain happy and every Friday, the Hauwa Suleiman Fund will make a donation to a partner charity on your behalf. The happier he is, the more he gives. Charity partnerships are launching soon in sha' Allah.
               </p>
-              <p className="text-[11px] text-gray-400 font-extrabold uppercase tracking-widest mb-6">Hawasleman Fund · Sadaqah Program</p>
+              
               <button onClick={() => setShowInfo(false)} className="btn-duo-primary w-full">Got it!</button>
             </motion.div>
           </div>
@@ -345,16 +345,17 @@ export function Home({
                           <button onClick={saveName} className="text-[#1CB0F6] font-extrabold text-sm">Save</button>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-2">
                           <p className="font-display text-lg text-gray-800 leading-tight truncate">
-                            {displayName ?? "Quran.com Member"}
+                            {displayName ?? "Noorain Member"}
                           </p>
                           <button
                             onClick={() => { setNameInput(displayName ?? ""); setEditingName(true); }}
                             aria-label="Edit display name"
-                            className="text-gray-300 hover:text-[#1CB0F6] transition-colors shrink-0"
+                            className="flex items-center gap-1 text-[#1CB0F6] hover:opacity-70 transition-opacity shrink-0 text-[11px] font-extrabold uppercase tracking-widest"
                           >
-                            <Edit2 size="14" />
+                            <Edit2 size="12" color="#1CB0F6" />
+                            Edit
                           </button>
                         </div>
                       )}
