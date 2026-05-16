@@ -19,7 +19,7 @@ export interface ReflectionQuestion {
 }
 
 export async function summarizeTafsir(tafsirHtml: string): Promise<string> {
-  if (!API_KEY) return "SubhanAllah — this verse is calling you to reflect.";
+  if (!API_KEY) return "SubhanAllah, this verse is calling you to reflect.";
 
   // Strip HTML and limit tokens
   const plainText = tafsirHtml.replace(/<[^>]*>?/gm, " ").replace(/\s+/g, " ").trim().slice(0, 2500);
@@ -54,13 +54,12 @@ Start with: "Ibn Kathir says", "So —", "You know what?", "This was actually", 
         },
       }),
     });
-    if (!res.ok) return "SubhanAllah — this verse carries a beautiful meaning.";
     const data = await res.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    return text ? humanizeTafsirNote(text.trim()) : "SubhanAllah — this verse carries a beautiful meaning.";
+    return text ? humanizeTafsirNote(text.trim()) : "SubhanAllah, this verse carries a beautiful meaning.";
   } catch (err) {
     console.error("[Gemini] summarizeTafsir error:", err);
-    return "SubhanAllah — this verse carries a beautiful meaning.";
+    return "SubhanAllah, this verse carries a beautiful meaning.";
   }
 }
 

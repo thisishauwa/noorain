@@ -87,10 +87,10 @@ export function Home({
   const getNoorSpeech = () => {
     if (isGuest) {
       const hour = new Date().getHours();
-      if (hour >= 21) return "It's late — may your reading bring you peace tonight 🌙";
-      if (hour >= 18) return "Welcome, friend. I'm happy you're here this evening 🌿";
-      if (hour >= 12) return "Alhamdulillah — glad you stopped by. Read at your own pace 🤍";
-      return "Ahlan wa sahlan! I'm happy you're here. Dive in whenever you're ready 🌟";
+      if (hour >= 21) return "It's late. May your reading bring you peace tonight";
+      if (hour >= 18) return "Welcome, friend. I'm happy you're here this evening";
+      if (hour >= 12) return "Alhamdulillah, glad you stopped by. Wasn't that fun!";
+      return "Ahlan wa sahlan! I'm happy you're here. Ready when you are";
     }
     const hour = new Date().getHours();
     const name = firstName ? `, ${firstName}` : "";
@@ -102,12 +102,12 @@ export function Home({
       if (streak.current > 3) {
         const d = (5 - new Date().getDay() + 7) % 7;
         if (d === 0) return `Today is donation day${name}! You made it happen.`;
-        return `${d} day${d !== 1 ? "s" : ""} till I donate — keep your streak!`;
+        return `${d} day${d !== 1 ? "s" : ""} till I donate. Keep your streak!`;
       }
       return moodInfo.messageAfter;
     }
-    if (hour >= 21) return `${firstName ? firstName + " — p" : "P"}lease… it's almost midnight. One page. That's all I need. 🌙`;
-    if (hour >= 18) return `Evening already${name}. I've been waiting all day — will you read with me tonight?`;
+    if (hour >= 21) return `${firstName ? firstName + ", p" : "P"}lease... it's almost midnight. One page. That's all I need.`;
+    if (hour >= 18) return `Evening already${name}. I've been waiting all day. Will you read with me tonight?`;
     if (hour >= 12) return `Afternoon. Still time${name}. ${moodInfo.message}`;
     return firstName ? `${moodInfo.message}` : moodInfo.message;
   };
@@ -140,7 +140,7 @@ export function Home({
               }}
             >
               {isGuest ? (
-                <span className="text-gray-400 text-lg leading-none">👤</span>
+                <span className="text-gray-400 text-lg leading-none">👋</span>
               ) : (
                 <span className="text-white">{initial}</span>
               )}
@@ -152,7 +152,7 @@ export function Home({
                   : `Assalam Alaikum${firstName ? `, ${firstName}` : ""}`}
               </h1>
               {isGuest && (
-                <p className="text-xs text-gray-400 font-medium mt-0.5">Reading as guest</p>
+                <p className="text-xs text-gray-400 font-medium mt-0.5">You're reading as a guest</p>
               )}
             </div>
           </div>
@@ -164,12 +164,7 @@ export function Home({
               <span className="text-xs font-extrabold text-[#FF9600]">{streak.current}</span>
             </div>
           ) : (
-            <button
-              onClick={() => setShowProfile(true)}
-              className="text-xs font-bold text-[#1CB0F6] underline underline-offset-2 hover:no-underline shrink-0"
-            >
-              Sign in
-            </button>
+            <></>
           )}
         </div>
 
@@ -205,13 +200,13 @@ export function Home({
           </div>
         ) : (
           <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl">
-            <span className="text-sm">📖</span>
-            <p className="text-xs font-bold text-amber-700 leading-snug">
-              Nothing is being saved.{" "}
-              <button onClick={() => setShowProfile(true)} className="underline hover:no-underline">
+            
+            <p className="text-xs text-amber-700 leading-snug">
+              Nothing is being saved right now.{" "}
+              <button onClick={() => setShowProfile(true)} className="underline hover:no-underline font-bold">
                 Sign in
               </button>{" "}
-              to track streaks and join the leaderboard.
+              so I don't forget you.
             </p>
           </div>
         )}
@@ -284,7 +279,7 @@ export function Home({
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white rounded-3xl p-6 w-full max-w-sm relative z-10 shadow-2xl">
               <h3 className="font-display text-2xl mb-3 text-gray-800">Noorain's Happiness</h3>
               <p className="text-gray-600 font-medium leading-relaxed mb-4">
-                Keep Noorain happy and every Friday, the Hawasleman Fund will make a donation to a partner charity on your behalf — the happier he is, the more he gives. Charity partnerships are launching soon in sha' Allah.
+                Keep Noorain happy and every Friday, the Hawasleman Fund will make a donation to a partner charity on your behalf. The happier he is, the more he gives. Charity partnerships are launching soon in sha' Allah.
               </p>
               <p className="text-[11px] text-gray-400 font-extrabold uppercase tracking-widest mb-6">Hawasleman Fund · Sadaqah Program</p>
               <button onClick={() => setShowInfo(false)} className="btn-duo-primary w-full">Got it!</button>
@@ -312,11 +307,11 @@ export function Home({
 
               {isGuest ? (
                 <div className="flex flex-col items-center gap-4 pt-2">
-                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-3xl">👤</div>
+                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-3xl">👋</div>
                   <div className="text-center">
                     <h3 className="font-display text-xl text-gray-800">Reading as a guest</h3>
                     <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-                      Nothing is being saved. Sign in with your Quran.com account to track streaks, earn sadaqah, and join the weekly leaderboard.
+                      Nothing is being saved. Sign in with your Quran.com account to meet Noorain. He'll track your reading and earn you rewards.
                     </p>
                   </div>
                   <button onClick={() => { setShowProfile(false); initiateLogin(); }} className="btn-duo-primary w-full">

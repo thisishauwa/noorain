@@ -8,7 +8,7 @@ interface Props {
 
 export function SadaqahModal({ show, meals, onClose }: Props) {
   const handleShare = async () => {
-    const text = `I've been reading the Qur'an consistently with Noorain. ${meals} sadaqah pledge${meals !== 1 ? "s have" : " has"} built up in my name — powered by the Hauwa Suleiman Fund 🌙\n\nhttps://noorain-app.vercel.app`;
+    const text = `I've been reading the Qur'an consistently with Noorain. ${meals} sadaqah pledge${meals !== 1 ? "s have" : " has"} built up in my name, powered by the Hauwa Suleiman Fund 🌙\n\nhttps://noorain-app.vercel.app`;
     if (navigator.share) {
       try {
         await navigator.share({ text });
@@ -61,7 +61,7 @@ export function SadaqahModal({ show, meals, onClose }: Props) {
             </h2>
             <p className="text-gray-500 text-sm font-semibold mb-8 leading-relaxed">
               {meals} sadaqah pledge{meals !== 1 ? "s" : ""} earned through
-              your reading — recorded in your name.
+              your reading, recorded in your name.
             </p>
 
             {/* Hawasleman Fund card */}
@@ -77,7 +77,7 @@ export function SadaqahModal({ show, meals, onClose }: Props) {
               <div className="px-4 py-4 text-left">
                 <p className="text-sm font-semibold text-gray-700 leading-relaxed mb-3">
                   The Hawasleman Fund is partnering with registered charities so
-                  that every pledge you earn becomes a real donation — food,
+                  that every pledge you earn becomes a real donation: food,
                   water, and essentials for those in need.
                 </p>
                 <p className="text-xs font-bold text-gray-400">

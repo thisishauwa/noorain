@@ -216,7 +216,7 @@ export function Reader({
       if (data) {
         setVerses(data);
         if (data.length > 0) {
-          // Only tracking cloud resume location here, NOT advancing streak/happiness until 'Done for today' is clicked.
+          // Track reading session with QF
           const firstKey = data[0].verse_key;
           const lastKey = data[data.length - 1].verse_key;
           const range = `${firstKey}-${lastKey}`;
@@ -224,6 +224,16 @@ export function Reader({
             visitedRangesRef.current.push(range);
           const [ch, v] = firstKey.split(":").map(Number);
           pushReadingSession(ch, v);
+
+          // Auto-save bookmark silently on every page turn
+          // ProgressSync debounces this to Supabase, so next visit resumes here
+          updateBookmark({
+            surah: ch,
+            ayah: v,
+            page,
+            juz: data[0].juz_number ?? 1,
+            lastRead: new Date().toISOString(),
+          });
         }
       }
       setLoading(false);
@@ -478,7 +488,7 @@ export function Reader({
 
             {/* Mushaf body */}
             <div
-              className="bg-[#FDFBF5] border border-[#E8DFC8] border-b-4 rounded-2xl px-5 py-6 md:px-8 md:py-10 leading-[2.6] md:leading-[2.8] text-center font-arabic text-xl md:text-2xl overflow-hidden mb-6 shadow-sm"
+              className="bg-[#FDFBF5] border border-[#E8DFC8] border-b-4 rounded-2xl px-5 py-6 md:px-8 md:py-10 leading-[2.6] md:leading-[2.8] text-center font-arabic text-2xl md:text-3xl overflow-hidden mb-6"
               dir="rtl"
             >
               {verses.map((verse) => (
@@ -820,7 +830,7 @@ export function Reader({
                         className="btn-duo-primary w-full disabled:opacity-40"
                       >
                         <TickSquare size="20" color="white" variant="Bold" />
-                        {reflectionA1 === null ? "Pick one to continue" : reflectionA1 === reflectionQs[0].correct ? "Correct — next" : "Next"}
+                        {reflectionA1 === null ? "Pick one to continue" : reflectionA1 === reflectionQs[0].correct ? "Correct, next" : "Next"}
                       </button>
                     </div>
                   )}
@@ -882,16 +892,36 @@ export function Reader({
                         className="btn-duo-primary w-full disabled:opacity-40"
                       >
                         <TickSquare size="20" color="white" variant="Bold" />
-                        {reflectionA2 === null ? "Pick one to continue" : reflectionA2 === reflectionQs[1].correct ? "Correct — finish" : "Finish"}
+                        {reflectionA2 === null ? "Pick one to continue" : reflectionA2 === reflectionQs[1].correct ? "Correct, finish" : "Finish"}
                       </button>
                     </div>
                   )}
 
 
 
-                  {/* Step 3 — farewell + mic */}
+                  {/* Step 3 - farewell + share + mic */}
                   {goodbyeStep === 3 && (
                     <div className="w-full flex flex-col items-center gap-3">
+                      {/* Share button */}
+                      <button
+                        onClick={() => {
+                          const surahName = currentChapter?.name_simple || "the Quran";
+                          const q = reflectionQs?.[0]?.question ?? null;
+                          const hint = q
+                            ? `I just learned: "${q}" - and I got it right.`
+                            : `I just finished a session in ${surahName}.`;
+                          const text = `${hint}\n\nReading Quran with AI is something else. Come read ${surahName} with me on Noorain and see if you can beat my score.\n\nhttps://noorain-app.vercel.app`;
+                          if (navigator.share) {
+                            navigator.share({ title: `Noorain - ${surahName}`, text });
+                          } else {
+                            navigator.clipboard.writeText(text);
+                            setToast("Copied to clipboard!");
+                          }
+                        }}
+                        className="btn-duo-secondary w-full text-sm"
+                      >
+                        Challenge a friend
+                      </button>
                       <div
                         className={`flex items-center gap-3 px-5 py-3 rounded-2xl border-2 w-full justify-center transition-all ${
                           isListening
