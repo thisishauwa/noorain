@@ -466,14 +466,25 @@ export function Reader({
                 {playAllActive ? "Stop" : "Play Page"}
               </button>
             </div>
+            {/* Mushaf page header */}
+            <div className="flex items-center justify-between mb-3 px-1">
+              <span className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400">
+                {chapters.find(c => c.id === verses[0]?.verse_key?.split(":")[0] as any)?.name_simple ?? ""}
+              </span>
+              <span className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400">
+                Page {page}
+              </span>
+            </div>
+
+            {/* Mushaf body */}
             <div
-              className="card-duo p-6 md:p-10 leading-[2.2] md:leading-[2.5] text-center font-arabic text-3xl md:text-4xl overflow-hidden mb-6"
+              className="bg-[#FDFBF5] border border-[#E8DFC8] border-b-4 rounded-2xl px-5 py-6 md:px-8 md:py-10 leading-[2.6] md:leading-[2.8] text-center font-arabic text-xl md:text-2xl overflow-hidden mb-6 shadow-sm"
               dir="rtl"
             >
               {verses.map((verse) => (
                 <span
                   key={verse.id}
-                  className={`transition-colors ${playingAyahKey === verse.verse_key ? "text-[#1CB0F6]" : ""}`}
+                  className={`transition-colors ${playingAyahKey === verse.verse_key ? "text-[#1CB0F6]" : "text-gray-800"}`}
                 >
                   {verse.words.map((word) => (
                     <span
@@ -482,11 +493,11 @@ export function Reader({
                         word.char_type_name !== "end" &&
                         handlePlayWord(word.audio_url, word.id)
                       }
-                      className={`inline-block mx-1 transition-colors ${word.char_type_name === "end" ? "cursor-default" : "cursor-pointer hover:text-brand/70"} ${playingWordId === word.id ? "text-[#1CB0F6]" : ""}`}
+                      className={`inline-block mx-0.5 transition-colors ${word.char_type_name === "end" ? "cursor-default" : "cursor-pointer hover:text-[#1CB0F6]/80"} ${playingWordId === word.id ? "text-[#1CB0F6]" : ""}`}
                     >
                       {word.char_type_name === "end" ? (
-                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#1CB0F6]/10 border border-[#1CB0F6]/25 border-b-2 align-middle mx-1 select-none">
-                          <span className="text-[10px] font-extrabold text-[#1CB0F6] leading-none font-sans">
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#1CB0F6]/10 border border-[#1CB0F6]/25 align-middle mx-1 select-none">
+                          <span className="text-[9px] font-extrabold text-[#1CB0F6] leading-none font-sans">
                             {verse.verse_number}
                           </span>
                         </span>
