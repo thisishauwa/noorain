@@ -18,6 +18,7 @@ import {
   isGuestMode,
   type QFUser,
 } from "./oauth";
+import { upsertUser } from "./supabase";
 
 const USER_PROFILE_KEY = "qf_user_profile";
 
@@ -71,6 +72,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               if (decoded) {
                 setUser(decoded);
                 try { localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(decoded)); } catch {}
+                // Upsert profile into Supabase (fire-and-forget)
+                upsertUser(decoded.sub, decoded.name || "Anonymous", tokens.accessToken);
               }
             }
           }

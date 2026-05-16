@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Flash, InfoCircle, Logout, Heart } from "iconsax-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../lib/authContext";
+import { fetchWeeklyLeaderboard, LeaderboardEntry } from "../lib/supabase";
 
 export function Home({
   onNavigate,
@@ -17,8 +18,21 @@ export function Home({
   const firstName = user?.name?.split(" ")[0] ?? user?.preferred_username ?? null;
   const [showSadaqah, setShowSadaqah] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [userRank, setUserRank] = useState<number | null>(null);
   const moodInfo = getNoorMood(noor.moodScore);
   const prevMealsRef = useRef(sadaqah.meals);
+
+  // Load leaderboard on mount
+  useEffect(() => {
+    fetchWeeklyLeaderboard().then((data) => {
+      setLeaderboard(data);
+      if (user?.sub) {
+        const rank = data.findIndex((e) => e.user_id === user.sub);
+        setUserRank(rank === -1 ? null : rank + 1);
+      }
+    });
+  }, [user?.sub]);
 
   useEffect(() => {
     if (sadaqah.meals > prevMealsRef.current) {
@@ -159,6 +173,44 @@ export function Home({
           </div>
         </div>
       </header>
+
+      {/* ── Weekly Leaderboard Strip ── */}
+      {leaderboard.length > 0 && (
+        <section className="max-w-2xl mx-auto w-full px-4 mb-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-0.5" style={{ scrollbarWidth: "none" }}>
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 whitespace-nowrap mr-1 shrink-0">
+              This week
+            </p>
+            {leaderboard.slice(0, 5).map((entry, i) => {
+              const medals = ["🥇", "🥈", "🥉"];
+              const isMe = user?.sub === entry.user_id;
+              return (
+                <div
+                  key={entry.user_id}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 shrink-0 ${
+                    isMe
+                      ? "border-[#1CB0F6] bg-[#EAF7FF]"
+                      : "border-gray-200 bg-gray-50"
+                  }`}
+                >
+                  <span className="text-sm leading-none">{medals[i] ?? `#${i + 1}`}</span>
+                  <span className={`text-xs font-extrabold ${ isMe ? "text-[#1CB0F6]" : "text-gray-700" }`}>
+                    {isMe ? "You" : entry.user_name.split(" ")[0]}
+                  </span>
+                  <span className="text-[10px] font-bold text-gray-400">
+                    {entry.total_score}pts
+                  </span>
+                </div>
+              );
+            })}
+            {userRank !== null && userRank > 5 && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 border-[#1CB0F6] bg-[#EAF7FF] shrink-0">
+                <span className="text-xs font-extrabold text-[#1CB0F6]">You #{userRank}</span>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* ── Main Content ── */}
       <main className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full px-4 md:px-0 min-h-0">

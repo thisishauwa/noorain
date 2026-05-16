@@ -12,6 +12,7 @@ import { useAppContext } from "../lib/store";
 import { getNoorMood } from "../lib/noor";
 import { useAuth } from "../lib/authContext";
 import { generateReflectionQuestions, ReflectionQuestion, summarizeTafsir } from "../lib/gemini";
+import { recordQuizScore } from "../lib/supabase";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ArrowLeft2,
@@ -51,7 +52,7 @@ export function Reader({
   const [loadingTafsir, setLoadingTafsir] = useState(false);
   const { markPageRead, updateBookmark, markJuzCompleted, noor, bookmark } =
     useAppContext();
-  const { pushReadingSession, flushActivityDay, pushBookmark } = useAuth();
+  const { pushReadingSession, flushActivityDay, pushBookmark, accessToken, user } = useAuth();
   const sessionStartRef = useRef(Date.now());
   const visitedRangesRef = useRef<string[]>([]);
   const [reflectionQs, setReflectionQs] = useState<
@@ -892,7 +893,26 @@ export function Reader({
                         </p>
                       )}
                       <button
-                        onClick={() => setGoodbyeStep(3)}
+                        onClick={() => {
+                          const score =
+                            (reflectionA1 === reflectionQs![0].correct ? 1 : 0) +
+                            (reflectionA2 === reflectionQs![1].correct ? 1 : 0);
+                          // Fire-and-forget — never blocks the UI
+                          if (accessToken && user?.sub) {
+                            recordQuizScore(
+                              {
+                                user_id: user.sub,
+                                user_name: user.name || "Anonymous",
+                                surah_number: currentChapterId || 0,
+                                surah_name: currentChapter?.name_simple || "",
+                                score,
+                                total_questions: 2,
+                              },
+                              accessToken,
+                            );
+                          }
+                          setGoodbyeStep(3);
+                        }}
                         disabled={reflectionA2 === null}
                         className="btn-duo-primary w-full disabled:opacity-40"
                       >
