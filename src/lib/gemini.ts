@@ -4,7 +4,7 @@ const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const KEY_HINT = API_KEY ? API_KEY.slice(-4) : "none";
 const ENDPOINT =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
-const CACHE_KEY = "noorain_reflection_cache_v3";
+const CACHE_KEY = "noorain_reflection_cache_v4";
 const QUOTA_BLOCK_UNTIL_KEY = `noorain_gemini_quota_block_until_${KEY_HINT}`;
 const pendingRequests = new Map<
   string,
@@ -12,9 +12,11 @@ const pendingRequests = new Map<
 >();
 
 export interface ReflectionQuestion {
+  /** "mcq" = multiple-choice with a correct answer; "reflect" = open prompt, no right/wrong */
+  type: "mcq" | "reflect";
   question: string;
-  options: string[];
-  correct: number;
+  options: string[];  // empty [] for reflect type
+  correct: number;    // -1 for reflect type
 }
 
 export async function summarizeTafsir(tafsirHtml: string): Promise<string> {
@@ -79,13 +81,10 @@ export async function generateReflectionQuestions(
     return cachedOrFallbackFromInputs(surahName, translations);
   }
 
-  const excerpt = translations.slice(0, 6).join(" ").slice(0, 800);
+  const excerpt = translations.slice(0, 6).join(" ").slice(0, 1000);
+  // Use page-level cache key (surah + hash) for in-flight dedup only
+  // We do NOT return cached answers so questions stay fresh each read
   const cacheKey = `${surahName}:${hashText(excerpt)}`;
-  const cached = readCache(cacheKey);
-  if (cached) {
-    console.log("[Gemini] Returning cached questions");
-    return cached;
-  }
   const pending = pendingRequests.get(cacheKey);
   if (pending) {
     console.log("[Gemini] Returning in-flight request");
@@ -93,24 +92,27 @@ export async function generateReflectionQuestions(
   }
   console.log(`[Gemini] Requesting questions for ${surahName}...`);
 
-  const prompt = `You are Noorain, a warm Quran companion reading alongside the user. Sound human, affectionate, and slightly quirky. You are allowed to say things like "I was reading that with you", "wait", "mm okay", or "let me quiz you" — but keep it natural and short.
+  const prompt = `You are Noorain, a warm Quran companion. The user just finished reading a section.
 
-The user just read ${surahName}. Excerpt: "${excerpt}".
+Surah: ${surahName}
+What they read (excerpt): "${excerpt}"
 
-Write 2 multiple-choice questions that TEACH something specific from these verses while still sounding like Noorain talking. The question itself should feel warm and in-character, but the answer choices should be clear and educational.
+Generate 2 items that help the user connect with what they just read. Mix the format naturally:
 
-Rules:
-- Each question must be grounded in the excerpt
-- Ask about meaning, theme, command, warning, promise, person, or lesson from the text
-- No vague emotional questions
-- 4 options exactly
-- 1 correct answer, 3 plausible distractors
-- All options max 6 words
-- "correct" is the 0-indexed correct option
-- Keep each question under 20 words
+- type "mcq": educational multiple-choice question about something SPECIFIC in the excerpt (a command, a name, a warning, a promise, a number). 4 short options (max 6 words each), exactly 1 correct.
+- type "reflect": warm conversational prompt — no right answer. Example starters: "What stood out to you in this section?", "Which of these felt closest to what you felt reading?", "If you had to tell a friend one thing from what you just read, what would it be?", "Which ayah stayed with you?"
 
-Return ONLY valid JSON:
-[{"question":"...","options":["...","...","...","..."],"correct":0},{"question":"...","options":["...","...","...","..."],"correct":2}]`;
+RULES:
+- ONLY ask about what is literally in the excerpt above — not general surah knowledge
+- Questions must be specific to this reading, not generic
+- Make the 2 items different types when possible
+- Warm, human tone — Noorain sounds like a friend
+- For reflect: options=[], correct=-1
+- For mcq: 4 options, correct is the 0-indexed answer
+- Each question max 25 words
+
+Return ONLY a JSON array — no markdown, no explanation:
+[{"type":"mcq","question":"...","options":["...","...","...","..."],"correct":0},{"type":"reflect","question":"...","options":[],"correct":-1}]`;
 
   const request = (async () => {
     try {
@@ -120,7 +122,7 @@ Return ONLY valid JSON:
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
-            temperature: 0.55,
+            temperature: 0.8,
             maxOutputTokens: 2048,
             thinkingConfig: { thinkingBudget: 0 },
             responseMimeType: "application/json",
@@ -129,11 +131,12 @@ Return ONLY valid JSON:
               items: {
                 type: "OBJECT",
                 properties: {
+                  type: { type: "STRING" },
                   question: { type: "STRING" },
                   options: { type: "ARRAY", items: { type: "STRING" } },
                   correct: { type: "INTEGER" },
                 },
-                required: ["question", "options", "correct"],
+                required: ["type", "question", "options", "correct"],
               },
             },
           },
@@ -303,19 +306,15 @@ function parseQuestions(
       console.error(`[Gemini] q[${i}].question not string:`, q.question);
       return null;
     }
-    if (!Array.isArray(q.options)) {
-      console.error(`[Gemini] q[${i}].options not array:`, q.options);
-      return null;
-    }
-    if (q.options.length < 2) {
+    if (!Array.isArray(q.options)) q.options = [];
+    // For reflect type: options may be empty and correct = -1
+    const isReflect = q.type === "reflect" || q.options.length === 0;
+    if (!isReflect && q.options.length < 2) {
       console.error(`[Gemini] q[${i}].options too short:`, q.options.length);
       return null;
     }
-    if (q.correct == null) {
-      console.error(`[Gemini] q[${i}].correct missing`);
-      return null;
-    }
-    q.correct = Number(q.correct);
+    q.correct = isReflect ? -1 : Number(q.correct ?? 0);
+    q.type = isReflect ? "reflect" : "mcq";
   }
 
   return [
@@ -348,54 +347,14 @@ function fallback(
   translations: string[],
 ): [ReflectionQuestion, ReflectionQuestion] {
   const text = translations.join(" ").toLowerCase();
-  if (
-    text.includes("guidance") ||
-    text.includes("muttaq") ||
-    text.includes("god-conscious")
-  ) {
+  if (text.includes("guidance") || text.includes("muttaq") || text.includes("god-conscious")) {
     return [
-      {
-        question: `I was reading ${surahName} with you — who is this guidance really for?`,
-        options: [
-          "Those mindful of Allah",
-          "Only scholars",
-          "Only prophets",
-          "Only rulers",
-        ],
-        correct: 0,
-      },
-      {
-        question: "Okay wait — what does this surah keep pointing us toward?",
-        options: [
-          "Faith and guidance",
-          "Wealth and status",
-          "Travel and trade",
-          "Food and clothing",
-        ],
-        correct: 0,
-      },
+      { type: "mcq", question: `I was reading ${surahName} with you — who is this guidance really for?`, options: ["Those mindful of Allah", "Only scholars", "Only prophets", "Only rulers"], correct: 0 },
+      { type: "reflect", question: "What stayed with you most from what you just read?", options: [], correct: -1 },
     ];
   }
   return [
-    {
-      question: `I read ${surahName} with you — let me quiz you: what theme showed up most?`,
-      options: [
-        "Guidance and worship",
-        "Trade laws",
-        "War stories",
-        "Food rules",
-      ],
-      correct: 0,
-    },
-    {
-      question: "Hmm, one more — what is Noorain meant to learn from this bit?",
-      options: [
-        "Follow Allah's guidance",
-        "Chase worldly praise",
-        "Ignore the warning",
-        "Delay doing good",
-      ],
-      correct: 0,
-    },
+    { type: "mcq", question: `I read ${surahName} with you — what theme showed up most?`, options: ["Guidance and worship", "Trade laws", "War stories", "Food rules"], correct: 0 },
+    { type: "reflect", question: "If you had to share one thing from this section with a friend, what would it be?", options: [], correct: -1 },
   ];
 }

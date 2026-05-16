@@ -754,77 +754,77 @@ export function Reader({
                     </p>
                   </div>
 
-                  {/* Step 1 — Q1 options */}
+                  {/* Step 1 — Q1 (mcq or reflect) */}
                   {goodbyeStep === 1 && reflectionQs && (
                     <div className="w-full flex flex-col gap-2">
-                      <div className="flex flex-col gap-1.5 w-full">
-                        {reflectionQs[0].options.map((opt, i) => {
-                          const answered = reflectionA1 !== null;
-                          const isCorrect = i === reflectionQs[0].correct;
-                          const isSelected = reflectionA1 === i;
-                          return (
+                      {reflectionQs[0].type === "reflect" ? (
+                        // ── Reflect prompt ──
+                        <div className="w-full flex flex-col gap-3">
+                          <p className="text-base font-bold text-gray-700 leading-snug text-center px-2">
+                            {reflectionQs[0].question}
+                          </p>
+                          {reflectionA1 === null ? (
                             <button
-                              key={i}
-                              onClick={() => {
-                                if (!answered) {
-                                  setReflectionA1(i);
-                                  if (i === reflectionQs[0].correct)
-                                    queueAdvance(2);
-                                }
-                              }}
-                              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
-                                !answered
-                                  ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#F0F9FF] active:scale-95"
-                                  : isCorrect
-                                    ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
-                                    : isSelected
-                                      ? "bg-[#1CB0F6]/12 border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]"
-                                      : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
-                              }`}
+                              onClick={() => { setReflectionA1(0); queueAdvance(2); }}
+                              className="btn-duo-secondary w-full"
                             >
-                              <span
-                                className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs ${
-                                  !answered
-                                    ? "bg-[#1CB0F6]/12 text-[#1CB0F6] border border-[#1CB0F6]/35"
-                                    : isCorrect
-                                      ? "bg-[#58CC02] text-white"
-                                      : isSelected
-                                        ? "bg-[#1CB0F6] text-white"
-                                        : "bg-gray-200 text-gray-500"
+                              I've thought about it ✓
+                            </button>
+                          ) : (
+                            <button onClick={() => setGoodbyeStep(2)} className="btn-duo-primary w-full">
+                              <TickSquare size="20" color="white" variant="Bold" />
+                              Next
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        // ── MCQ ──
+                        <div className="flex flex-col gap-1.5 w-full">
+                          {reflectionQs[0].options.map((opt, i) => {
+                            const answered = reflectionA1 !== null;
+                            const isCorrect = i === reflectionQs[0].correct;
+                            const isSelected = reflectionA1 === i;
+                            return (
+                              <button
+                                key={i}
+                                onClick={() => {
+                                  if (!answered) {
+                                    setReflectionA1(i);
+                                    if (i === reflectionQs[0].correct) queueAdvance(2);
+                                  }
+                                }}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
+                                  !answered ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#F0F9FF] active:scale-95"
+                                    : isCorrect ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
+                                    : isSelected ? "bg-[#1CB0F6]/12 border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]"
+                                    : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
                                 }`}
                               >
-                                {OPTION_LETTERS[i]}
-                              </span>
-                              <span className="flex-1">{opt}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {reflectionA1 !== null && (
-                        <p
-                          className={`text-xs font-bold text-center ${
-                            reflectionA1 === reflectionQs[0].correct
-                              ? "text-[#58CC02]"
-                              : "text-red-500"
-                          }`}
-                        >
-                          {reflectionA1 === reflectionQs[0].correct
-                            ? ""
-                            : `Not quite — the answer is: "${reflectionQs[0].options[reflectionQs[0].correct]}"`}
-                        </p>
+                                <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs ${
+                                  !answered ? "bg-[#1CB0F6]/12 text-[#1CB0F6] border border-[#1CB0F6]/35"
+                                    : isCorrect ? "bg-[#58CC02] text-white"
+                                    : isSelected ? "bg-[#1CB0F6] text-white"
+                                    : "bg-gray-200 text-gray-500"
+                                }`}>{OPTION_LETTERS[i]}</span>
+                                <span className="flex-1">{opt}</span>
+                              </button>
+                            );
+                          })}
+                          {reflectionA1 !== null && (
+                            <p className={`text-xs font-bold text-center ${ reflectionA1 === reflectionQs[0].correct ? "text-[#58CC02]" : "text-red-500" }`}>
+                              {reflectionA1 !== reflectionQs[0].correct && `Not quite — the answer is: "${reflectionQs[0].options[reflectionQs[0].correct]}"`}
+                            </p>
+                          )}
+                          <button
+                            onClick={() => setGoodbyeStep(2)}
+                            disabled={reflectionA1 === null}
+                            className="btn-duo-primary w-full disabled:opacity-40"
+                          >
+                            <TickSquare size="20" color="white" variant="Bold" />
+                            {reflectionA1 === null ? "Pick one to continue" : reflectionA1 === reflectionQs[0].correct ? "Correct" : "Next"}
+                          </button>
+                        </div>
                       )}
-                      <button
-                        onClick={() => setGoodbyeStep(2)}
-                        disabled={reflectionA1 === null}
-                        className="btn-duo-primary w-full disabled:opacity-40"
-                      >
-                        <TickSquare size="20" color="white" variant="Bold" />
-                        {reflectionA1 === null
-                          ? "Pick one to continue"
-                          : reflectionA1 === reflectionQs[0].correct
-                            ? "Correct"
-                            : "Next"}
-                      </button>
                     </div>
                   )}
                   {goodbyeStep === 1 && !reflectionQs && (
@@ -833,98 +833,91 @@ export function Reader({
                     </div>
                   )}
 
-                  {/* Step 2 — Q2 options */}
+                  {/* Step 2 — Q2 (mcq or reflect) */}
                   {goodbyeStep === 2 && reflectionQs && (
                     <div className="w-full flex flex-col gap-2">
-                      <div className="flex flex-col gap-1.5 w-full">
-                        {reflectionQs[1].options.map((opt, i) => {
-                          const answered = reflectionA2 !== null;
-                          const isCorrect = i === reflectionQs[1].correct;
-                          const isSelected = reflectionA2 === i;
-                          return (
-                            <button
-                              key={i}
-                              onClick={() => {
-                                if (!answered) {
-                                  setReflectionA2(i);
-                                  if (i === reflectionQs[1].correct)
-                                    queueAdvance(3);
-                                }
-                              }}
-                              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
-                                !answered
-                                  ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#F0F9FF] active:scale-95"
-                                  : isCorrect
-                                    ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
-                                    : isSelected
-                                      ? "bg-[#1CB0F6]/12 border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]"
-                                      : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
-                              }`}
-                            >
-                              <span
-                                className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs ${
-                                  !answered
-                                    ? "bg-[#1CB0F6]/12 text-[#1CB0F6] border border-[#1CB0F6]/35"
-                                    : isCorrect
-                                      ? "bg-[#58CC02] text-white"
-                                      : isSelected
-                                        ? "bg-[#1CB0F6] text-white"
-                                        : "bg-gray-200 text-gray-500"
+                      {reflectionQs[1].type === "reflect" ? (
+                        // ── Reflect prompt ──
+                        <div className="w-full flex flex-col gap-3">
+                          <p className="text-base font-bold text-gray-700 leading-snug text-center px-2">
+                            {reflectionQs[1].question}
+                          </p>
+                          <button
+                            onClick={() => {
+                              setReflectionA2(0);
+                              // Score: reflect = 0 points, mcq q1 was already answered
+                              const score = (reflectionA1 !== null && reflectionQs![0].type === "mcq" && reflectionA1 === reflectionQs![0].correct) ? 1 : 0;
+                              if (accessToken && user?.sub) {
+                                recordQuizScore({ user_id: user.sub, user_name: user.name || "Anonymous", surah_number: currentChapterId || 0, surah_name: currentChapter?.name_simple || "", score, total_questions: 2 }, accessToken);
+                              }
+                              setGoodbyeStep(3);
+                            }}
+                            className="btn-duo-primary w-full"
+                          >
+                            <TickSquare size="20" color="white" variant="Bold" />
+                            I've reflected — next
+                          </button>
+                        </div>
+                      ) : (
+                        // ── MCQ ──
+                        <div className="flex flex-col gap-1.5 w-full">
+                          {reflectionQs[1].options.map((opt, i) => {
+                            const answered = reflectionA2 !== null;
+                            const isCorrect = i === reflectionQs[1].correct;
+                            const isSelected = reflectionA2 === i;
+                            return (
+                              <button
+                                key={i}
+                                onClick={() => {
+                                  if (!answered) {
+                                    setReflectionA2(i);
+                                    if (i === reflectionQs[1].correct) queueAdvance(3);
+                                  }
+                                }}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
+                                  !answered ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#F0F9FF] active:scale-95"
+                                    : isCorrect ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
+                                    : isSelected ? "bg-[#1CB0F6]/12 border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]"
+                                    : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
                                 }`}
                               >
-                                {OPTION_LETTERS[i]}
-                              </span>
-                              <span className="flex-1">{opt}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {reflectionA2 !== null && (
-                        <p
-                          className={`text-xs font-bold text-center ${
-                            reflectionA2 === reflectionQs[1].correct
-                              ? "text-[#58CC02]"
-                              : "text-red-500"
-                          }`}
-                        >
-                          {reflectionA2 === reflectionQs[1].correct
-                            ? ""
-                            : `Not quite — the answer is: "${reflectionQs[1].options[reflectionQs[1].correct]}"`}
-                        </p>
-                      )}
-                      <button
-                        onClick={() => {
-                          const score =
-                            (reflectionA1 === reflectionQs![0].correct ? 1 : 0) +
-                            (reflectionA2 === reflectionQs![1].correct ? 1 : 0);
-                          // Fire-and-forget — never blocks the UI
-                          if (accessToken && user?.sub) {
-                            recordQuizScore(
-                              {
-                                user_id: user.sub,
-                                user_name: user.name || "Anonymous",
-                                surah_number: currentChapterId || 0,
-                                surah_name: currentChapter?.name_simple || "",
-                                score,
-                                total_questions: 2,
-                              },
-                              accessToken,
+                                <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs ${
+                                  !answered ? "bg-[#1CB0F6]/12 text-[#1CB0F6] border border-[#1CB0F6]/35"
+                                    : isCorrect ? "bg-[#58CC02] text-white"
+                                    : isSelected ? "bg-[#1CB0F6] text-white"
+                                    : "bg-gray-200 text-gray-500"
+                                }`}>{OPTION_LETTERS[i]}</span>
+                                <span className="flex-1">{opt}</span>
+                              </button>
                             );
-                          }
-                          setGoodbyeStep(3);
-                        }}
-                        disabled={reflectionA2 === null}
-                        className="btn-duo-primary w-full disabled:opacity-40"
-                      >
-                        <TickSquare size="20" color="white" variant="Bold" />
-                        {reflectionA2 === null
-                          ? "Pick one to continue"
-                          : reflectionA2 === reflectionQs[1].correct
-                            ? "Correct"
-                            : "Continue"}
-                      </button>
+                          })}
+                          {reflectionA2 !== null && (
+                            <p className={`text-xs font-bold text-center ${ reflectionA2 === reflectionQs[1].correct ? "text-[#58CC02]" : "text-red-500" }`}>
+                              {reflectionA2 !== reflectionQs[1].correct && `Not quite — the answer is: "${reflectionQs[1].options[reflectionQs[1].correct]}"`}
+                            </p>
+                          )}
+                          <button
+                            onClick={() => {
+                              const score =
+                                (reflectionA1 !== null && reflectionQs![0].type === "mcq" && reflectionA1 === reflectionQs![0].correct ? 1 : 0) +
+                                (reflectionA2 !== null && reflectionQs![1].type === "mcq" && reflectionA2 === reflectionQs![1].correct ? 1 : 0);
+                              if (accessToken && user?.sub) {
+                                recordQuizScore({ user_id: user.sub, user_name: user.name || "Anonymous", surah_number: currentChapterId || 0, surah_name: currentChapter?.name_simple || "", score, total_questions: 2 }, accessToken);
+                              }
+                              setGoodbyeStep(3);
+                            }}
+                            disabled={reflectionA2 === null}
+                            className="btn-duo-primary w-full disabled:opacity-40"
+                          >
+                            <TickSquare size="20" color="white" variant="Bold" />
+                            {reflectionA2 === null ? "Pick one to continue" : reflectionA2 === reflectionQs[1].correct ? "Correct" : "Continue"}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
+
+
 
                   {/* Step 3 — farewell + mic */}
                   {goodbyeStep === 3 && (
