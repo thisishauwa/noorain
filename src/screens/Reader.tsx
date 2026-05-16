@@ -685,27 +685,30 @@ export function Reader({
       {/* Action Bar — fixed bottom on mobile, inline on md+ */}
       {!loading && (
         <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 pb-safe px-4 pt-4 z-10 md:relative md:bottom-auto md:left-auto md:right-auto md:bg-transparent md:backdrop-blur-none md:border-0 md:pb-8 md:pt-6">
-          <div className="max-w-2xl mx-auto w-full flex gap-2 sm:gap-3">
+          <div className="max-w-2xl mx-auto w-full flex gap-2 sm:gap-3 items-center">
+            {/* Back */}
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="btn-duo-secondary aspect-square px-0 w-[52px] sm:w-[56px] shrink-0"
+              className="btn-duo-secondary px-4 shrink-0 text-sm font-extrabold"
               aria-label="Previous page"
             >
-              <ArrowLeft2 size="24" color="#afafaf" />
+              Back
             </button>
+            {/* Done for today — smaller, centred */}
             <button
               onClick={handleDone}
-              className="btn-duo-primary flex-1 whitespace-nowrap"
+              className="btn-duo-primary flex-1 whitespace-nowrap text-sm"
             >
-              <TickSquare size="24" color="white" variant="Bold" />
+              <TickSquare size="18" color="white" variant="Bold" />
               Done for today
             </button>
+            {/* Next */}
             <button
               onClick={() => setPage((p) => Math.min(604, p + 1))}
-              className="btn-duo-secondary aspect-square px-0 w-[52px] sm:w-[56px] shrink-0"
+              className="btn-duo-secondary px-4 shrink-0 text-sm font-extrabold"
               aria-label="Next page"
             >
-              <ArrowRight2 size="24" color="#afafaf" />
+              Next
             </button>
           </div>
         </div>

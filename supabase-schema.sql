@@ -82,11 +82,13 @@ GRANT SELECT ON noorain_progress    TO anon, authenticated;
 ALTER TABLE noorain_users        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE noorain_quiz_scores  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE noorain_leaderboard  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE noorain_progress     ENABLE ROW LEVEL SECURITY;
 
--- ── RLS Policies (leaderboard is public read-only) ────────────────────────────
+-- ── RLS Policies (all public read-only; writes via service role only) ─────────
 CREATE POLICY "Public read users"       ON noorain_users        FOR SELECT USING (true);
 CREATE POLICY "Public read scores"      ON noorain_quiz_scores  FOR SELECT USING (true);
 CREATE POLICY "Public read leaderboard" ON noorain_leaderboard  FOR SELECT USING (true);
+CREATE POLICY "Public read progress"    ON noorain_progress     FOR SELECT USING (true);
 
 -- Writes only from service role (our server-side function — no browser writes)
 -- No INSERT/UPDATE/DELETE policies needed for anon/authenticated.
