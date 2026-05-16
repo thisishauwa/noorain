@@ -8,7 +8,7 @@ interface Props {
 
 export function SadaqahModal({ show, meals, onClose }: Props) {
   const handleShare = async () => {
-    const text = `I've been reading the Qur'an consistently with Noorain. ${meals} sadaqah pledge${meals !== 1 ? "s have" : " has"} built up in my name — powered by the Hawasleman Fund 🌙\n\nhttps://noorain-app.vercel.app`;
+    const text = `I've been reading the Qur'an consistently with Noorain. ${meals} sadaqah pledge${meals !== 1 ? "s have" : " has"} built up in my name — powered by the Hauwa Suleiman Fund 🌙\n\nhttps://noorain-app.vercel.app`;
     if (navigator.share) {
       try {
         await navigator.share({ text });

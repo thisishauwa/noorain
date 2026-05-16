@@ -19,7 +19,7 @@ const SLIDES = [
   },
   {
     title: "Happy Noorain gives",
-    text: "When he's at his happiest, he gives sadaqah in your name — powered by the Hawasleman Fund. Charity partnerships launching soon.",
+    text: "When he's at his happiest, he gives sadaqah in your name, powered by the Hauwa Suleiman Fund. Charity partnerships launching soon.",
     img: "/noor/onboarding%20images/10.png",
     bg: "#FFF4DC",
     cloud: "#FFE4A0",
