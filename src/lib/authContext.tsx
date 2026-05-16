@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setUser(decoded);
                 try { localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(decoded)); } catch {}
                 // Upsert profile into Supabase (fire-and-forget)
-                upsertUser(decoded.sub, decoded.name || "Anonymous", tokens.accessToken);
+                upsertUser(decoded.sub, decoded.name || decoded.preferred_username || "Anonymous", tokens.accessToken, decoded.email);
               }
             }
           }
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const raw = localStorage.getItem(USER_PROFILE_KEY);
         if (raw) {
           const cached = JSON.parse(raw) as QFUser;
-          upsertUser(cached.sub, cached.name || "Anonymous", saved.accessToken);
+          upsertUser(cached.sub, cached.name || cached.preferred_username || "Anonymous", saved.accessToken, cached.email);
         }
       } catch {}
     }

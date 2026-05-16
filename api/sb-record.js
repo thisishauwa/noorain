@@ -50,6 +50,7 @@ export default async function handler(req, res) {
         {
           id: qfUser.sub,
           name: qfUser.name || payload.user_name || "Anonymous",
+          email: qfUser.email || payload.email || null,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "id" },

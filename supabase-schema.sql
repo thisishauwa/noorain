@@ -7,9 +7,13 @@
 CREATE TABLE IF NOT EXISTS noorain_users (
   id         TEXT PRIMARY KEY,          -- QF OAuth sub
   name       TEXT NOT NULL DEFAULT 'Anonymous',
+  email      TEXT,                      -- QF email (may be null)
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Migration: add email to existing deployments (safe to re-run)
+ALTER TABLE noorain_users ADD COLUMN IF NOT EXISTS email TEXT;
 
 -- 2. Quiz scores (individual attempts)
 CREATE TABLE IF NOT EXISTS noorain_quiz_scores (

@@ -12,11 +12,10 @@ const pendingRequests = new Map<
 >();
 
 export interface ReflectionQuestion {
-  /** "mcq" = multiple-choice with a correct answer; "reflect" = open prompt, no right/wrong */
-  type: "mcq" | "reflect";
+  type: "mcq";
   question: string;
-  options: string[];  // empty [] for reflect type
-  correct: number;    // -1 for reflect type
+  options: string[];
+  correct: number;
 }
 
 export async function summarizeTafsir(tafsirHtml: string): Promise<string> {
@@ -25,20 +24,22 @@ export async function summarizeTafsir(tafsirHtml: string): Promise<string> {
   // Strip HTML and limit tokens
   const plainText = tafsirHtml.replace(/<[^>]*>?/gm, " ").replace(/\s+/g, " ").trim().slice(0, 2500);
 
-  const prompt = `You are Noorain, a warm Quran companion. A user just opened Ibn Kathir's tafsir for a verse.
+  const prompt = `You are Noorain, a Quran companion. A user opened Ibn Kathir's tafsir for a verse.
 
 Here is the tafsir text:
 "${plainText}"
 
-Write exactly 2 short sentences — total max 45 words — that tell the user one SPECIFIC, concrete thing from this tafsir:
-- A historical context (when/why this was revealed)
-- What a specific word or name in the verse means
-- A specific command, promise, or warning Allah makes
-- A specific person or event mentioned
+Write exactly 2 short sentences (max 50 words total) summarising the ACTUAL CONTENT of this tafsir — what it SAYS, not just that it exists.
 
-Forbidden words: profound, wisdom, deep, emphasizes, reminds us, reflects, underscores, highlights, illustrates, conveys, spiritual journey.
-Start with: "Ibn Kathir says", "You know what?", "This was actually", "SubhanAllah —", or "So —".
-Sound like a friend talking, not an essay.`;
+Rules:
+- Give SPECIFIC information from the text: a name, a number, a ruling, a cause, a specific event, a specific teaching, a specific argument
+- Do NOT say things like "gives a glimpse", "discusses", "sheds light on", "reminds us", "teaches us" — instead STATE the thing itself
+- Good example: "Ibn Kathir says this verse was revealed when the Christians of Najran debated the Prophet, arguing Jesus was divine. Allah responded by comparing Jesus's creation to Adam's — both created without a father."
+- Bad example: "Ibn Kathir gives us a glimpse into the historical context of this verse and reminds us of the importance of faith."
+- Sound like a knowledgeable friend sharing a fact, not a tour guide
+- Forbidden words: glimpse, highlights, emphasizes, reminds, reflects, underscores, illustrates, conveys, spiritual journey, profound, wisdom
+
+Start with: "Ibn Kathir says", "So —", "You know what?", "This was actually", or "SubhanAllah —".`;
 
   try {
     const res = await fetch(`${ENDPOINT}?key=${API_KEY}`, {
@@ -97,22 +98,20 @@ export async function generateReflectionQuestions(
 Surah: ${surahName}
 What they read (excerpt): "${excerpt}"
 
-Generate 2 items that help the user connect with what they just read. Mix the format naturally:
-
-- type "mcq": educational multiple-choice question about something SPECIFIC in the excerpt (a command, a name, a warning, a promise, a number). 4 short options (max 6 words each), exactly 1 correct.
-- type "reflect": warm conversational prompt — no right answer. Example starters: "What stood out to you in this section?", "Which of these felt closest to what you felt reading?", "If you had to tell a friend one thing from what you just read, what would it be?", "Which ayah stayed with you?"
+Generate 2 educational multiple-choice questions about this specific passage. Each question should teach the user something concrete from what they read.
 
 RULES:
-- ONLY ask about what is literally in the excerpt above — not general surah knowledge
-- Questions must be specific to this reading, not generic
-- Make the 2 items different types when possible
-- Warm, human tone — Noorain sounds like a friend
-- For reflect: options=[], correct=-1
-- For mcq: 4 options, correct is the 0-indexed answer
-- Each question max 25 words
+- ONLY ask about what is literally in the excerpt above — no general surah knowledge
+- Ask about: a specific command, a name mentioned, a warning, a promise, a number, an event, a word meaning, a theme
+- Make Q1 and Q2 different in what they ask about
+- 4 options each, exactly 1 correct answer
+- All options max 8 words
+- Each question max 20 words
+- Warm, human tone — Noorain sounds like a curious friend
+- type is always "mcq"
 
-Return ONLY a JSON array — no markdown, no explanation:
-[{"type":"mcq","question":"...","options":["...","...","...","..."],"correct":0},{"type":"reflect","question":"...","options":[],"correct":-1}]`;
+Return ONLY a JSON array — no markdown:
+[{"type":"mcq","question":"...","options":["...","...","...","..."],"correct":0},{"type":"mcq","question":"...","options":["...","...","...","..."],"correct":2}]`;
 
   const request = (async () => {
     try {
@@ -306,15 +305,12 @@ function parseQuestions(
       console.error(`[Gemini] q[${i}].question not string:`, q.question);
       return null;
     }
-    if (!Array.isArray(q.options)) q.options = [];
-    // For reflect type: options may be empty and correct = -1
-    const isReflect = q.type === "reflect" || q.options.length === 0;
-    if (!isReflect && q.options.length < 2) {
-      console.error(`[Gemini] q[${i}].options too short:`, q.options.length);
+    if (!Array.isArray(q.options) || q.options.length < 2) {
+      console.error(`[Gemini] q[${i}].options invalid:`, q.options);
       return null;
     }
-    q.correct = isReflect ? -1 : Number(q.correct ?? 0);
-    q.type = isReflect ? "reflect" : "mcq";
+    q.correct = Number(q.correct ?? 0);
+    q.type = "mcq";
   }
 
   return [
@@ -349,12 +345,12 @@ function fallback(
   const text = translations.join(" ").toLowerCase();
   if (text.includes("guidance") || text.includes("muttaq") || text.includes("god-conscious")) {
     return [
-      { type: "mcq", question: `I was reading ${surahName} with you — who is this guidance really for?`, options: ["Those mindful of Allah", "Only scholars", "Only prophets", "Only rulers"], correct: 0 },
-      { type: "reflect", question: "What stayed with you most from what you just read?", options: [], correct: -1 },
+      { type: "mcq", question: `Who is this guidance in ${surahName} really for?`, options: ["Those mindful of Allah", "Only scholars", "Only prophets", "Only rulers"], correct: 0 },
+      { type: "mcq", question: "What does this passage keep pointing toward?", options: ["Faith and guidance", "Wealth and status", "Travel and trade", "Food and clothing"], correct: 0 },
     ];
   }
   return [
-    { type: "mcq", question: `I read ${surahName} with you — what theme showed up most?`, options: ["Guidance and worship", "Trade laws", "War stories", "Food rules"], correct: 0 },
-    { type: "reflect", question: "If you had to share one thing from this section with a friend, what would it be?", options: [], correct: -1 },
+    { type: "mcq", question: `What theme shows up most in this part of ${surahName}?`, options: ["Guidance and worship", "Trade laws", "War stories", "Food rules"], correct: 0 },
+    { type: "mcq", question: "What is Allah calling believers to in this passage?", options: ["Follow His guidance", "Chase worldly praise", "Ignore the warning", "Delay doing good"], correct: 0 },
   ];
 }

@@ -83,6 +83,7 @@ export async function upsertUser(
   userId: string,
   name: string,
   accessToken: string,
+  email?: string,
 ): Promise<boolean> {
   try {
     const res = await fetch("/api/sb-record", {
@@ -90,7 +91,7 @@ export async function upsertUser(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         type: "upsert_user",
-        payload: { user_id: userId, user_name: name },
+        payload: { user_id: userId, user_name: name, email: email ?? null },
         accessToken,
       }),
     });
