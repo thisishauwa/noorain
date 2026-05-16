@@ -750,10 +750,13 @@ export function Reader({
             >
             {/* ── Skip / close button ── */}
               <button
-                onClick={() => setGoodbyeStep(0)}
+                onClick={() => {
+                  handleDone();         // saves streak + happiness + flushes QF activity
+                  onNavigate("home");   // goes home
+                }}
                 className="absolute top-4 right-4 z-30 text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors px-3 py-1.5 rounded-full hover:bg-gray-100"
               >
-                Skip →
+                Skip
               </button>
 
             {/* ── Top: Question + Options ── */}
@@ -1090,7 +1093,7 @@ export function Reader({
                             </div>
                             <span className="text-[11px] font-black uppercase tracking-widest text-[#1CB0F6]">Noorain's Note</span>
                           </div>
-                          <div className="text-sm font-medium text-gray-700 leading-relaxed bg-[#1CB0F6]/5 p-4 rounded-xl border border-[#1CB0F6]/10">
+                          <div className="text-sm font-medium text-gray-700 leading-relaxed bg-[#1CB0F6]/5 p-4 rounded-xl border border-[#1CB0F6]/10 whitespace-pre-wrap">
                             {aiSummary}
                           </div>
                         </div>

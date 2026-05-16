@@ -67,6 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (tokens) {
             saveTokens(tokens);
             setAccessToken(tokens.accessToken);
+            // Clear guest mode — user has now signed in properly
+            setGuestMode(false);
+            setIsGuest(false);
             if (tokens.idToken) {
               const decoded = parseIdToken(tokens.idToken);
               if (decoded) {

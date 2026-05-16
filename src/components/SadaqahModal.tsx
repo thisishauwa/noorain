@@ -8,7 +8,7 @@ interface Props {
 
 export function SadaqahModal({ show, meals, onClose }: Props) {
   const handleShare = async () => {
-    const text = `I've been reading the Qur'an consistently with Noorain. ${meals} sadaqah pledge${meals !== 1 ? "s have" : " has"} built up in my name, powered by the Hauwa Suleiman Fund 🌙\n\nhttps://noorain-app.vercel.app`;
+    const text = `I've been reading the Qur'an consistently with Noorain. ${meals} sadaqah pledge${meals !== 1 ? "s have" : " has"} built up in my name, powered by the Hauwa Suleiman Fund:\n\nhttps://noorain-app.vercel.app`;
     if (navigator.share) {
       try {
         await navigator.share({ text });
@@ -68,7 +68,7 @@ export function SadaqahModal({ show, meals, onClose }: Props) {
             <div className="w-full card-duo mb-8 overflow-hidden">
               <div className="px-4 py-3 border-b-2 border-gray-100 flex items-center justify-between">
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
-                  Hawasleman Fund
+                  The Hauwa Suleiman Fund
                 </p>
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#1CB0F6]">
                   Coming soon
@@ -76,9 +76,9 @@ export function SadaqahModal({ show, meals, onClose }: Props) {
               </div>
               <div className="px-4 py-4 text-left">
                 <p className="text-sm font-semibold text-gray-700 leading-relaxed mb-3">
-                  The Hawasleman Fund is partnering with registered charities so
-                  that every pledge you earn becomes a real donation: food,
-                  water, and essentials for those in need.
+                  The <a href="https://www.instagram.com/thehauwasuleimanfund/" target="_blank" rel="noopener noreferrer">Hauwa Suleiman Fund</a>  is partnering with registered charities so
+                  that every pledge you earn becomes a real donation: meds,
+                  food, water, and essentials for those in need.
                 </p>
                 <p className="text-xs font-bold text-gray-400">
                   Every Friday, pledges convert to donations as partnerships go

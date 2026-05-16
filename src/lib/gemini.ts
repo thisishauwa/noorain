@@ -19,27 +19,29 @@ export interface ReflectionQuestion {
 }
 
 export async function summarizeTafsir(tafsirHtml: string): Promise<string> {
-  if (!API_KEY) return "SubhanAllah, this verse is calling you to reflect.";
+  if (!API_KEY) return "Open the full tafsir below to read Ibn Kathir's commentary.";
 
   // Strip HTML and limit tokens
-  const plainText = tafsirHtml.replace(/<[^>]*>?/gm, " ").replace(/\s+/g, " ").trim().slice(0, 2500);
+  const plainText = tafsirHtml.replace(/<[^>]*>?/gm, " ").replace(/\s+/g, " ").trim().slice(0, 3500);
 
-  const prompt = `You are Noorain, a Quran companion. A user opened Ibn Kathir's tafsir for a verse.
+  const prompt = `You are summarising Ibn Kathir's tafsir for a Quran reader. Extract the most important facts from this commentary and present them as 3-5 short bullet points.
 
-Here is the tafsir text:
+TAFSIR TEXT:
 "${plainText}"
 
-Write exactly 2 short sentences (max 50 words total) summarising the ACTUAL CONTENT of this tafsir — what it SAYS, not just that it exists.
+RULES:
+- Each bullet must state a SPECIFIC fact: an actual ruling, a fraction (like "sisters get one-third"), a name of a companion, a specific event, a hadith, or a cause of revelation.
+- DO NOT write meta-commentary like "Ibn Kathir discusses..." or "this verse teaches..." — STATE the thing itself.
+- If there is a ruling about inheritance, prayer, halal/haram — state the exact ruling.
+- If there is a hadith, say who narrated it and what they said.
+- If there is a historical event (who asked, when it was revealed, what happened) — name who was involved.
+- Keep each bullet to 1-2 sentences maximum.
+- Write in plain English. No markdown. Use • as the bullet character.
 
-Rules:
-- Give SPECIFIC information from the text: a name, a number, a ruling, a cause, a specific event, a specific teaching, a specific argument
-- Do NOT say things like "gives a glimpse", "discusses", "sheds light on", "reminds us", "teaches us" — instead STATE the thing itself
-- Good example: "Ibn Kathir says this verse was revealed when the Christians of Najran debated the Prophet, arguing Jesus was divine. Allah responded by comparing Jesus's creation to Adam's — both created without a father."
-- Bad example: "Ibn Kathir gives us a glimpse into the historical context of this verse and reminds us of the importance of faith."
-- Sound like a knowledgeable friend sharing a fact, not a tour guide
-- Forbidden words: glimpse, highlights, emphasizes, reminds, reflects, underscores, illustrates, conveys, spiritual journey, profound, wisdom
-
-Start with: "Ibn Kathir says", "So —", "You know what?", "This was actually", or "SubhanAllah —".`;
+FORMAT YOUR RESPONSE EXACTLY LIKE THIS (no intro, no outro, just bullets):
+• [fact 1]
+• [fact 2]
+• [fact 3]`;
 
   try {
     const res = await fetch(`${ENDPOINT}?key=${API_KEY}`, {
@@ -48,18 +50,19 @@ Start with: "Ibn Kathir says", "So —", "You know what?", "This was actually", 
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.5,
-          maxOutputTokens: 120,
+          temperature: 0.3,
+          maxOutputTokens: 350,
           thinkingConfig: { thinkingBudget: 0 },
         },
       }),
     });
     const data = await res.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    return text ? humanizeTafsirNote(text.trim()) : "SubhanAllah, this verse carries a beautiful meaning.";
+    // Return raw bullet points — skip humanizer which breaks the format
+    return text ? text.trim() : "Open the full tafsir below to read Ibn Kathir's commentary.";
   } catch (err) {
     console.error("[Gemini] summarizeTafsir error:", err);
-    return "SubhanAllah, this verse carries a beautiful meaning.";
+    return "Open the full tafsir below to read Ibn Kathir's commentary.";
   }
 }
 
