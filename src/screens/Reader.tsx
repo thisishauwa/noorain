@@ -58,6 +58,7 @@ export function Reader({
     markPageRead,
     updateBookmark,
     updatePinnedBookmark,
+    adjustNoorScore,
     markJuzCompleted,
     noor,
     bookmark,
@@ -72,12 +73,15 @@ export function Reader({
   } = useAuth();
   const sessionStartRef = useRef(Date.now());
   const visitedRangesRef = useRef<string[]>([]);
+  const sessionVersesRef = useRef<Verse[]>([]);
+  const verseRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [reflectionQs, setReflectionQs] = useState<
     [ReflectionQuestion, ReflectionQuestion, ReflectionQuestion] | null
   >(null);
   const [reflectionA1, setReflectionA1] = useState<number | null>(null);
   const [reflectionA2, setReflectionA2] = useState<number | null>(null);
   const [reflectionA3, setReflectionA3] = useState<number | null>(null);
+  const [quizScore, setQuizScore] = useState<number | null>(null);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [loadingAiSummary, setLoadingAiSummary] = useState(false);
 
@@ -244,7 +248,6 @@ export function Reader({
           pushReadingSession(ch, v);
 
           // Auto-save bookmark silently on every page turn
-          // ProgressSync debounces this to Supabase, so next visit resumes here
           updateBookmark({
             surah: ch,
             ayah: v,
@@ -252,12 +255,37 @@ export function Reader({
             juz: data[0].juz_number ?? 1,
             lastRead: new Date().toISOString(),
           });
+
+          // Accumulate all verses read this session for smarter quiz context
+          const existingKeys = new Set(
+            sessionVersesRef.current.map((v) => v.verse_key),
+          );
+          const newOnes = data.filter((v) => !existingKeys.has(v.verse_key));
+          sessionVersesRef.current = [...sessionVersesRef.current, ...newOnes];
         }
       }
       setLoading(false);
-      contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     });
   }, [page]);
+
+  // Scroll to pinned bookmark when its page loads; otherwise reset to top
+  useEffect(() => {
+    if (verses.length === 0) return;
+    const pinnedKey = pinnedBookmark
+      ? `${pinnedBookmark.surah}:${pinnedBookmark.ayah}`
+      : null;
+    const isOnPage = pinnedKey && verses.some((v) => v.verse_key === pinnedKey);
+    if (isOnPage) {
+      setTimeout(() => {
+        verseRefs.current[pinnedKey!]?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 150);
+    } else {
+      contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [verses]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (activeTafsirAyah) {
@@ -350,13 +378,16 @@ export function Reader({
 
     flushSession();
     const surahName = currentChapter?.name_simple ?? "this surah";
-    const translations = verses.flatMap(
+    const sessionVerses =
+      sessionVersesRef.current.length > 0 ? sessionVersesRef.current : verses;
+    const translations = sessionVerses.flatMap(
       (v) => v.translations?.map((t: any) => t.text ?? "") ?? [],
     );
     setReflectionQs(null);
     setReflectionA1(null);
     setReflectionA2(null);
     setReflectionA3(null);
+    setQuizScore(null);
     generateReflectionQuestions(surahName, translations).then(setReflectionQs);
     goodbyeStepRef.current = 1;
     setGoodbyeStep(1);
@@ -546,6 +577,9 @@ export function Reader({
             {verses.map((verse, _index) => (
               <div
                 key={verse.id}
+                ref={(el) => {
+                  verseRefs.current[verse.verse_key] = el;
+                }}
                 className={`card-duo p-5 md:p-6 transition-all ${
                   playingAyahKey === verse.verse_key
                     ? "border-[#1CB0F6] bg-blue-50/50"
@@ -804,9 +838,17 @@ export function Reader({
                           ? reflectionQs[2].question
                           : "Last one — I promise this one's interesting.")}
                       {goodbyeStep === 4 &&
-                        (happinessGained > 0
-                          ? `JazakAllah Khair. +${happinessGained} happiness — say "Assalam Alaikum" to leave.`
-                          : 'JazakAllah Khair for sharing. Say "Assalam Alaikum" — I want to hear your voice before you go.')}
+                        (quizScore === 3
+                          ? `MashaAllah 3/3! +${happinessGained} happiness — say "Assalam Alaikum" to go.`
+                          : quizScore === 2
+                            ? `2/3 — nearly there. +${happinessGained} happiness — say "Assalam Alaikum" to go.`
+                            : quizScore === 1
+                              ? `1/3 — keep learning. Say "Assalam Alaikum" to go.`
+                              : quizScore === 0
+                                ? `Don’t worry — reading is the ibadah. Say "Assalam Alaikum" to go.`
+                                : happinessGained > 0
+                                  ? `JazakAllah Khair. +${happinessGained} happiness — say "Assalam Alaikum" to leave.`
+                                  : 'JazakAllah Khair for sharing. Say "Assalam Alaikum" — I want to hear your voice before you go.')}
                       {goodbyeStep === 5 &&
                         "Wa Alaikum Assalam! Can't wait to read with you tomorrow."}
                     </p>
@@ -1013,6 +1055,16 @@ export function Reader({
                               ? 1
                               : 0) +
                             (reflectionA3 === reflectionQs![2].correct ? 1 : 0);
+                          setQuizScore(score);
+                          adjustNoorScore(
+                            score === 3
+                              ? 5
+                              : score === 2
+                                ? 2
+                                : score === 1
+                                  ? -2
+                                  : -5,
+                          );
                           if (accessToken && user?.sub) {
                             recordQuizScore(
                               {

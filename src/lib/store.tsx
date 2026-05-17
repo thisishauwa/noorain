@@ -41,6 +41,7 @@ interface AppState {
   markPageRead: (page: number, juz: number) => void;
   markJuzCompleted: (juz: number) => void;
   evaluateStreak: () => void;
+  adjustNoorScore: (delta: number) => void;
   hydrateFromRemote: (remote: import("./supabase").RemoteProgress) => void;
 }
 
@@ -51,6 +52,7 @@ const initialState: Omit<
   | "markPageRead"
   | "markJuzCompleted"
   | "evaluateStreak"
+  | "adjustNoorScore"
   | "hydrateFromRemote"
 > = {
   bookmark: null,
@@ -124,6 +126,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const updateBookmark = (newBookmark: Bookmark) => setBookmark(newBookmark);
   const updatePinnedBookmark = (newBookmark: Bookmark) =>
     setPinnedBookmark(newBookmark);
+
+  const adjustNoorScore = (delta: number) => {
+    const today = new Date().toISOString().split("T")[0];
+    setNoor((prev) => {
+      const newScore = Math.max(0, Math.min(100, prev.moodScore + delta));
+      const moodInfo = getNoorMood(newScore);
+      return {
+        ...prev,
+        moodScore: newScore,
+        currentMood: moodInfo.mood,
+        lastUpdated: today,
+        sadaqahTrigger: moodInfo.sadaqahTrigger || false,
+      };
+    });
+  };
 
   const markPageRead = (page: number, juz: number) => {
     const today = new Date().toISOString().split("T")[0];
@@ -336,6 +353,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         noor,
         updateBookmark,
         updatePinnedBookmark,
+        adjustNoorScore,
         markPageRead,
         markJuzCompleted,
         evaluateStreak,
