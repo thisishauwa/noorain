@@ -8,7 +8,7 @@ const CACHE_KEY = "noorain_reflection_cache_v4";
 const QUOTA_BLOCK_UNTIL_KEY = `noorain_gemini_quota_block_until_${KEY_HINT}`;
 const pendingRequests = new Map<
   string,
-  Promise<[ReflectionQuestion, ReflectionQuestion]>
+  Promise<[ReflectionQuestion, ReflectionQuestion, ReflectionQuestion]>
 >();
 
 export interface ReflectionQuestion {
@@ -19,10 +19,15 @@ export interface ReflectionQuestion {
 }
 
 export async function summarizeTafsir(tafsirHtml: string): Promise<string> {
-  if (!API_KEY) return "Open the full tafsir below to read Ibn Kathir's commentary.";
+  if (!API_KEY)
+    return "Open the full tafsir below to read Ibn Kathir's commentary.";
 
   // Strip HTML and limit tokens
-  const plainText = tafsirHtml.replace(/<[^>]*>?/gm, " ").replace(/\s+/g, " ").trim().slice(0, 3500);
+  const plainText = tafsirHtml
+    .replace(/<[^>]*>?/gm, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 3500);
 
   const prompt = `You are a knowledgeable Islamic teacher helping a reader understand what they just read in Ibn Kathir's tafsir.
 
@@ -62,7 +67,9 @@ Use • as the bullet character. Plain text only. No intro. No outro. Just bulle
     });
     const data = await res.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    return text ? text.trim() : "Open the full tafsir below to read Ibn Kathir's commentary.";
+    return text
+      ? text.trim()
+      : "Open the full tafsir below to read Ibn Kathir's commentary.";
   } catch (err) {
     console.error("[Gemini] summarizeTafsir error:", err);
     return "Open the full tafsir below to read Ibn Kathir's commentary.";
@@ -76,7 +83,7 @@ Use • as the bullet character. Plain text only. No intro. No outro. Just bulle
 export async function generateReflectionQuestions(
   surahName: string,
   translations: string[],
-): Promise<[ReflectionQuestion, ReflectionQuestion]> {
+): Promise<[ReflectionQuestion, ReflectionQuestion, ReflectionQuestion]> {
   console.log(`[Gemini] key hint: ...${KEY_HINT}`);
   if (!API_KEY) {
     console.warn("[Gemini] No API key — using fallback");
@@ -103,12 +110,12 @@ export async function generateReflectionQuestions(
 Surah: ${surahName}
 What they read (excerpt): "${excerpt}"
 
-Generate 2 educational multiple-choice questions about this specific passage. Each question should teach the user something concrete from what they read.
+Generate 3 educational multiple-choice questions about this specific passage. Each question should teach the user something concrete from what they read.
 
 RULES:
 - ONLY ask about what is literally in the excerpt above — no general surah knowledge
 - Ask about: a specific command, a name mentioned, a warning, a promise, a number, an event, a word meaning, a theme
-- Make Q1 and Q2 different in what they ask about
+- Make each question different in what it asks about
 - 4 options each, exactly 1 correct answer
 - All options max 8 words
 - Each question max 20 words
@@ -116,7 +123,7 @@ RULES:
 - type is always "mcq"
 
 Return ONLY a JSON array — no markdown:
-[{"type":"mcq","question":"...","options":["...","...","...","..."],"correct":0},{"type":"mcq","question":"...","options":["...","...","...","..."],"correct":2}]`;
+[{"type":"mcq","question":"...","options":["...","...","...","..."],"correct":0},{"type":"mcq","question":"...","options":["...","...","...","..."],"correct":2},{"type":"mcq","question":"...","options":["...","...","...","..."],"correct":1}]`;
 
   const request = (async () => {
     try {
@@ -185,7 +192,7 @@ function cachedOrFallback(
   cacheKey: string,
   surahName: string,
   translations: string[],
-): [ReflectionQuestion, ReflectionQuestion] {
+): [ReflectionQuestion, ReflectionQuestion, ReflectionQuestion] {
   const cached = readCache(cacheKey);
   return cached ?? fallback(surahName, translations);
 }
@@ -193,7 +200,7 @@ function cachedOrFallback(
 function cachedOrFallbackFromInputs(
   surahName: string,
   translations: string[],
-): [ReflectionQuestion, ReflectionQuestion] {
+): [ReflectionQuestion, ReflectionQuestion, ReflectionQuestion] {
   const excerpt = translations.slice(0, 6).join(" ").slice(0, 800);
   const cacheKey = `${surahName}:${hashText(excerpt)}`;
   return cachedOrFallback(cacheKey, surahName, translations);
@@ -201,14 +208,14 @@ function cachedOrFallbackFromInputs(
 
 function readCache(
   cacheKey: string,
-): [ReflectionQuestion, ReflectionQuestion] | null {
+): [ReflectionQuestion, ReflectionQuestion, ReflectionQuestion] | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Record<string, ReflectionQuestion[]>;
     const qs = parsed[cacheKey];
-    if (!qs || qs.length < 2) return null;
-    return [qs[0], qs[1]];
+    if (!qs || qs.length < 3) return null;
+    return [qs[0], qs[1], qs[2]];
   } catch {
     return null;
   }
@@ -216,7 +223,7 @@ function readCache(
 
 function writeCache(
   cacheKey: string,
-  questions: [ReflectionQuestion, ReflectionQuestion],
+  questions: [ReflectionQuestion, ReflectionQuestion, ReflectionQuestion],
 ) {
   try {
     const raw = localStorage.getItem(CACHE_KEY);
@@ -299,12 +306,12 @@ function parseQuestions(
     console.error("[Gemini] Parsed value is not an array:", typeof parsed);
     return null;
   }
-  if (parsed.length < 2) {
-    console.error("[Gemini] Array has fewer than 2 items:", parsed.length);
+  if (parsed.length < 3) {
+    console.error("[Gemini] Array has fewer than 3 items:", parsed.length);
     return null;
   }
 
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < 3; i++) {
     const q = parsed[i];
     if (typeof q.question !== "string") {
       console.error(`[Gemini] q[${i}].question not string:`, q.question);
@@ -321,6 +328,7 @@ function parseQuestions(
   return [
     humaniseQuestion(parsed[0], surahName),
     humaniseQuestion(parsed[1], surahName),
+    humaniseQuestion(parsed[2], surahName),
   ];
 }
 
@@ -346,16 +354,82 @@ function hashText(text: string) {
 function fallback(
   surahName: string,
   translations: string[],
-): [ReflectionQuestion, ReflectionQuestion] {
+): [ReflectionQuestion, ReflectionQuestion, ReflectionQuestion] {
   const text = translations.join(" ").toLowerCase();
-  if (text.includes("guidance") || text.includes("muttaq") || text.includes("god-conscious")) {
+  if (
+    text.includes("guidance") ||
+    text.includes("muttaq") ||
+    text.includes("god-conscious")
+  ) {
     return [
-      { type: "mcq", question: `Who is this guidance in ${surahName} really for?`, options: ["Those mindful of Allah", "Only scholars", "Only prophets", "Only rulers"], correct: 0 },
-      { type: "mcq", question: "What does this passage keep pointing toward?", options: ["Faith and guidance", "Wealth and status", "Travel and trade", "Food and clothing"], correct: 0 },
+      {
+        type: "mcq",
+        question: `Who is this guidance in ${surahName} really for?`,
+        options: [
+          "Those mindful of Allah",
+          "Only scholars",
+          "Only prophets",
+          "Only rulers",
+        ],
+        correct: 0,
+      },
+      {
+        type: "mcq",
+        question: "What does this passage keep pointing toward?",
+        options: [
+          "Faith and guidance",
+          "Wealth and status",
+          "Travel and trade",
+          "Food and clothing",
+        ],
+        correct: 0,
+      },
+      {
+        type: "mcq",
+        question: "What is the main call to action in this passage?",
+        options: [
+          "Reflect and act on it",
+          "Ignore it for now",
+          "Debate with scholars",
+          "Wait for a sign",
+        ],
+        correct: 0,
+      },
     ];
   }
   return [
-    { type: "mcq", question: `What theme shows up most in this part of ${surahName}?`, options: ["Guidance and worship", "Trade laws", "War stories", "Food rules"], correct: 0 },
-    { type: "mcq", question: "What is Allah calling believers to in this passage?", options: ["Follow His guidance", "Chase worldly praise", "Ignore the warning", "Delay doing good"], correct: 0 },
+    {
+      type: "mcq",
+      question: `What theme shows up most in this part of ${surahName}?`,
+      options: [
+        "Guidance and worship",
+        "Trade laws",
+        "War stories",
+        "Food rules",
+      ],
+      correct: 0,
+    },
+    {
+      type: "mcq",
+      question: "What is Allah calling believers to in this passage?",
+      options: [
+        "Follow His guidance",
+        "Chase worldly praise",
+        "Ignore the warning",
+        "Delay doing good",
+      ],
+      correct: 0,
+    },
+    {
+      type: "mcq",
+      question: "What best describes the tone of this passage?",
+      options: [
+        "A reminder and a call",
+        "A historical record only",
+        "A legal ruling only",
+        "A rebuke with no hope",
+      ],
+      correct: 0,
+    },
   ];
 }

@@ -7,7 +7,11 @@ import { Flash, InfoCircle, Heart, CloseCircle, Edit2 } from "iconsax-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../lib/authContext";
 import { initiateLogin } from "../lib/oauth";
-import { fetchWeeklyLeaderboard, LeaderboardEntry } from "../lib/supabase";
+import {
+  fetchWeeklyLeaderboard,
+  LeaderboardEntry,
+  upsertUser,
+} from "../lib/supabase";
 
 const NICKNAME_KEY = "noorain_nickname";
 
@@ -17,11 +21,15 @@ export function Home({
   onNavigate: (screen: "home" | "browser" | "reader") => void;
 }) {
   const { streak, sadaqah, noor, bookmark } = useAppContext();
-  const { logout, user, isGuest } = useAuth();
+  const { logout, user, isGuest, accessToken } = useAuth();
 
   // Nickname — locally stored override for display name
   const [nickname, setNickname] = useState(() => {
-    try { return localStorage.getItem(NICKNAME_KEY) || ""; } catch { return ""; }
+    try {
+      return localStorage.getItem(NICKNAME_KEY) || "";
+    } catch {
+      return "";
+    }
   });
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState("");
@@ -61,7 +69,12 @@ export function Home({
     const trimmed = nameInput.trim();
     if (trimmed) {
       setNickname(trimmed);
-      try { localStorage.setItem(NICKNAME_KEY, trimmed); } catch {}
+      try {
+        localStorage.setItem(NICKNAME_KEY, trimmed);
+      } catch {}
+      if (user?.sub && accessToken) {
+        upsertUser(user.sub, trimmed, accessToken, user.email);
+      }
     }
     setEditingName(false);
   };
@@ -87,15 +100,24 @@ export function Home({
   const getNoorSpeech = () => {
     if (isGuest) {
       const hour = new Date().getHours();
-      if (hour >= 21) return "It's late. May your reading bring you peace tonight";
-      if (hour >= 18) return "Welcome, friend. I'm happy you're here this evening";
-      if (hour >= 12) return "Alhamdulillah, glad you stopped by. Wasn't that fun!";
+      if (hour >= 21)
+        return "It's late. May your reading bring you peace tonight";
+      if (hour >= 18)
+        return "Welcome, friend. I'm happy you're here this evening";
+      if (hour >= 12)
+        return "Alhamdulillah, glad you stopped by. Wasn't that fun!";
       return "Ahlan wa sahlan! I'm happy you're here. Ready when you are";
     }
     const hour = new Date().getHours();
     const name = firstName ? `, ${firstName}` : "";
     if (streak.current === 0 && streak.lastReadDate) {
-      const days = Math.max(1, Math.floor((Date.now() - new Date(streak.lastReadDate).getTime()) / (1000 * 3600 * 24)));
+      const days = Math.max(
+        1,
+        Math.floor(
+          (Date.now() - new Date(streak.lastReadDate).getTime()) /
+            (1000 * 3600 * 24),
+        ),
+      );
       return `${firstName ? firstName + ", " : ""}hungry kids haven't eaten in ${days} day${days !== 1 ? "s" : ""}… please come back 😢`;
     }
     if (hasReadToday) {
@@ -106,8 +128,10 @@ export function Home({
       }
       return moodInfo.messageAfter;
     }
-    if (hour >= 21) return `${firstName ? firstName + ", p" : "P"}lease... it's almost midnight. One page. That's all I need.`;
-    if (hour >= 18) return `Evening already${name}. I've been waiting all day. Will you read with me tonight?`;
+    if (hour >= 21)
+      return `${firstName ? firstName + ", p" : "P"}lease... it's almost midnight. One page. That's all I need.`;
+    if (hour >= 18)
+      return `Evening already${name}. I've been waiting all day. Will you read with me tonight?`;
     if (hour >= 12) return `Afternoon. Still time${name}. ${moodInfo.message}`;
     return firstName ? `${moodInfo.message}` : moodInfo.message;
   };
@@ -119,13 +143,10 @@ export function Home({
 
   return (
     <div className="flex flex-col h-dvh bg-white overflow-hidden font-sans relative">
-
       {/* ── Top Bar ── */}
       <header className="flex flex-col gap-3 px-4 py-4 md:py-5 max-w-2xl mx-auto w-full pt-[max(1rem,env(safe-area-inset-top))]">
-
         {/* Row 1: avatar + greeting (LEFT) | streak (RIGHT) */}
         <div className="flex justify-between items-center w-full mt-2">
-
           {/* LEFT: profile avatar + greeting */}
           <div className="flex items-center gap-2.5">
             <button
@@ -152,7 +173,9 @@ export function Home({
                   : `Assalam Alaikum${firstName ? `, ${firstName}` : ""}`}
               </h1>
               {isGuest && (
-                <p className="text-xs text-gray-400 font-medium mt-0.5">You're reading as a guest</p>
+                <p className="text-xs text-gray-400 font-medium mt-0.5">
+                  You're reading as a guest
+                </p>
               )}
             </div>
           </div>
@@ -161,7 +184,9 @@ export function Home({
           {!isGuest ? (
             <div className="h-9 flex items-center gap-1.5 bg-orange-50 border-2 border-orange-200 rounded-full px-2.5 shrink-0">
               <Flash size="16" color="#FF9600" variant="Bold" />
-              <span className="text-xs font-extrabold text-[#FF9600]">{streak.current}</span>
+              <span className="text-xs font-extrabold text-[#FF9600]">
+                {streak.current}
+              </span>
             </div>
           ) : (
             <></>
@@ -179,7 +204,15 @@ export function Home({
                 NOORAIN'S HAPPINESS
                 <InfoCircle size="14" color="#a3a3a3" variant="Outline" />
               </button>
-              <span className={noor.moodScore >= 80 ? "text-[#58CC02]" : noor.moodScore >= 50 ? "text-[#1CB0F6]" : "text-gray-400"}>
+              <span
+                className={
+                  noor.moodScore >= 80
+                    ? "text-[#58CC02]"
+                    : noor.moodScore >= 50
+                      ? "text-[#1CB0F6]"
+                      : "text-gray-400"
+                }
+              >
                 {noor.moodScore >= 80
                   ? `${noor.moodScore}% · ${daysUntilFriday}`
                   : noor.moodScore >= 50
@@ -200,10 +233,12 @@ export function Home({
           </div>
         ) : (
           <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl">
-            
             <p className="text-xs text-amber-700 leading-snug">
               Nothing is being saved right now.{" "}
-              <button onClick={() => setShowProfile(true)} className="underline hover:no-underline font-bold">
+              <button
+                onClick={() => setShowProfile(true)}
+                className="underline hover:no-underline font-bold"
+              >
                 Sign in
               </button>{" "}
               so I don't forget you.
@@ -215,22 +250,40 @@ export function Home({
       {/* ── Leaderboard Strip (auth only) ── */}
       {!isGuest && leaderboard.length > 0 && (
         <section className="max-w-2xl mx-auto w-full px-4 mb-2">
-          <div className="flex items-center gap-2 overflow-x-auto pb-0.5" style={{ scrollbarWidth: "none" }}>
-            <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 whitespace-nowrap mr-1 shrink-0">This week</p>
+          <div
+            className="flex items-center gap-2 overflow-x-auto pb-0.5"
+            style={{ scrollbarWidth: "none" }}
+          >
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 whitespace-nowrap mr-1 shrink-0">
+              This week
+            </p>
             {leaderboard.slice(0, 5).map((entry, i) => {
               const medals = ["🥇", "🥈", "🥉"];
               const isMe = user?.sub === entry.user_id;
               return (
-                <div key={entry.user_id} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 shrink-0 ${isMe ? "border-[#1CB0F6] bg-[#EAF7FF]" : "border-gray-200 bg-gray-50"}`}>
-                  <span className="text-sm leading-none">{medals[i] ?? `#${i + 1}`}</span>
-                  <span className={`text-xs font-extrabold ${isMe ? "text-[#1CB0F6]" : "text-gray-700"}`}>{isMe ? "You" : entry.user_name.split(" ")[0]}</span>
-                  <span className="text-[10px] font-bold text-gray-400">{entry.total_score}pts</span>
+                <div
+                  key={entry.user_id}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 shrink-0 ${isMe ? "border-[#1CB0F6] bg-[#EAF7FF]" : "border-gray-200 bg-gray-50"}`}
+                >
+                  <span className="text-sm leading-none">
+                    {medals[i] ?? `#${i + 1}`}
+                  </span>
+                  <span
+                    className={`text-xs font-extrabold ${isMe ? "text-[#1CB0F6]" : "text-gray-700"}`}
+                  >
+                    {isMe ? "You" : entry.user_name.split(" ")[0]}
+                  </span>
+                  <span className="text-[10px] font-bold text-gray-400">
+                    {entry.total_score}pts
+                  </span>
                 </div>
               );
             })}
             {userRank !== null && userRank > 5 && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 border-[#1CB0F6] bg-[#EAF7FF] shrink-0">
-                <span className="text-xs font-extrabold text-[#1CB0F6]">You #{userRank}</span>
+                <span className="text-xs font-extrabold text-[#1CB0F6]">
+                  You #{userRank}
+                </span>
               </div>
             )}
           </div>
@@ -258,31 +311,66 @@ export function Home({
       {/* ── Footer ── */}
       <footer className="w-full p-4 md:p-8 mt-auto pb-safe">
         <div className="max-w-2xl mx-auto w-full flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-4">
-          <button onClick={() => onNavigate("browser")} className="btn-duo-secondary flex-1">
+          <button
+            onClick={() => onNavigate("browser")}
+            className="btn-duo-secondary flex-1"
+          >
             Browse Surahs
           </button>
-          <button onClick={() => onNavigate("reader")} className="btn-duo-primary flex-2">
-            {isGuest ? "Start Reading" : bookmark ? "Continue Reading" : "Read with Noorain"}
+          <button
+            onClick={() => onNavigate("reader")}
+            className="btn-duo-primary flex-2"
+          >
+            {isGuest
+              ? "Start Reading"
+              : bookmark
+                ? "Continue Reading"
+                : "Read with Noorain"}
           </button>
         </div>
       </footer>
 
       {!isGuest && (
-        <SadaqahModal show={showSadaqah} meals={sadaqah.meals} onClose={() => setShowSadaqah(false)} />
+        <SadaqahModal
+          show={showSadaqah}
+          meals={sadaqah.meals}
+          onClose={() => setShowSadaqah(false)}
+        />
       )}
 
       {/* ── Happiness Info Modal ── */}
       <AnimatePresence>
         {showInfo && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowInfo(false)} className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white rounded-3xl p-6 w-full max-w-sm relative z-10 shadow-2xl">
-              <h3 className="font-display text-2xl mb-3 text-gray-800">Noorain's Happiness</h3>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowInfo(false)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl p-6 w-full max-w-sm relative z-10 shadow-2xl"
+            >
+              <h3 className="font-display text-2xl mb-3 text-gray-800">
+                Noorain's Happiness
+              </h3>
               <p className="text-gray-600 font-medium leading-relaxed mb-4">
-                Keep Noorain happy and every Friday, the Hauwa Suleiman Fund will make a donation to a partner charity on your behalf. The happier he is, the more he gives. Charity partnerships are launching soon in sha' Allah.
+                Keep Noorain happy and every Friday, the Hauwa Suleiman Fund
+                will make a donation to a partner charity on your behalf. The
+                happier he is, the more he gives. Charity partnerships are
+                launching soon in sha' Allah.
               </p>
-              
-              <button onClick={() => setShowInfo(false)} className="btn-duo-primary w-full">Got it!</button>
+
+              <button
+                onClick={() => setShowInfo(false)}
+                className="btn-duo-primary w-full"
+              >
+                Got it!
+              </button>
             </motion.div>
           </div>
         )}
@@ -292,7 +380,13 @@ export function Home({
       <AnimatePresence>
         {showProfile && (
           <div className="fixed inset-0 z-50 flex items-end justify-center">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowProfile(false)} className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowProfile(false)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
             <motion.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
@@ -301,23 +395,42 @@ export function Home({
               className="relative z-10 w-full max-w-lg bg-white rounded-t-3xl px-6 pt-5 pb-10 shadow-2xl"
             >
               <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
-              <button onClick={() => setShowProfile(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600" aria-label="Close">
+              <button
+                onClick={() => setShowProfile(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                aria-label="Close"
+              >
                 <CloseCircle size="24" variant="Bold" color="#d1d5db" />
               </button>
 
               {isGuest ? (
                 <div className="flex flex-col items-center gap-4 pt-2">
-                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-3xl">👋</div>
+                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-3xl">
+                    👋
+                  </div>
                   <div className="text-center">
-                    <h3 className="font-display text-xl text-gray-800">Reading as a guest</h3>
+                    <h3 className="font-display text-xl text-gray-800">
+                      Reading as a guest
+                    </h3>
                     <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-                      Nothing is being saved. Sign in with your Quran.com account to meet Noorain. He'll track your reading and earn you rewards.
+                      Nothing is being saved. Sign in with your Quran.com
+                      account to meet Noorain. He'll track your reading and earn
+                      you rewards.
                     </p>
                   </div>
-                  <button onClick={() => { setShowProfile(false); initiateLogin(); }} className="btn-duo-primary w-full">
+                  <button
+                    onClick={() => {
+                      setShowProfile(false);
+                      initiateLogin();
+                    }}
+                    className="btn-duo-primary w-full"
+                  >
                     Sign in with Quran.com
                   </button>
-                  <button onClick={() => setShowProfile(false)} className="btn-duo-secondary w-full">
+                  <button
+                    onClick={() => setShowProfile(false)}
+                    className="btn-duo-secondary w-full"
+                  >
                     Continue as guest
                   </button>
                 </div>
@@ -327,7 +440,9 @@ export function Home({
                   <div className="flex items-center gap-4">
                     <div
                       className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-extrabold text-white shrink-0"
-                      style={{ background: "linear-gradient(135deg, #1CB0F6, #0088CC)" }}
+                      style={{
+                        background: "linear-gradient(135deg, #1CB0F6, #0088CC)",
+                      }}
                     >
                       {initial}
                     </div>
@@ -339,10 +454,18 @@ export function Home({
                             className="border-2 border-[#1CB0F6] rounded-xl px-3 py-1.5 text-sm font-bold text-gray-800 flex-1 outline-none"
                             value={nameInput}
                             onChange={(e) => setNameInput(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === "Enter") saveName(); if (e.key === "Escape") setEditingName(false); }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") saveName();
+                              if (e.key === "Escape") setEditingName(false);
+                            }}
                             placeholder={displayName || "Enter your name"}
                           />
-                          <button onClick={saveName} className="text-[#1CB0F6] font-extrabold text-sm">Save</button>
+                          <button
+                            onClick={saveName}
+                            className="text-[#1CB0F6] font-extrabold text-sm"
+                          >
+                            Save
+                          </button>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
@@ -350,7 +473,10 @@ export function Home({
                             {displayName ?? "Noorain Member"}
                           </p>
                           <button
-                            onClick={() => { setNameInput(displayName ?? ""); setEditingName(true); }}
+                            onClick={() => {
+                              setNameInput(displayName ?? "");
+                              setEditingName(true);
+                            }}
                             aria-label="Edit display name"
                             className="flex items-center gap-1 text-[#1CB0F6] hover:opacity-70 transition-opacity shrink-0 text-[11px] font-extrabold uppercase tracking-widest"
                           >
@@ -359,7 +485,9 @@ export function Home({
                           </button>
                         </div>
                       )}
-                      <p className="text-xs text-gray-400 font-medium truncate mt-0.5">{subLabel}</p>
+                      <p className="text-xs text-gray-400 font-medium truncate mt-0.5">
+                        {subLabel}
+                      </p>
                     </div>
                   </div>
 
@@ -367,14 +495,18 @@ export function Home({
                   <div className="grid grid-cols-3 gap-2">
                     <div className="flex flex-col items-center gap-1 bg-orange-50 rounded-2xl py-3 border border-orange-100">
                       <Flash size="20" color="#FF9600" variant="Bold" />
-                      <span className="text-lg font-extrabold text-[#FF9600]">{streak.current}</span>
+                      <span className="text-lg font-extrabold text-[#FF9600]">
+                        {streak.current}
+                      </span>
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide text-center">
                         Day streak
                       </span>
                     </div>
                     <div className="flex flex-col items-center gap-1 bg-red-50 rounded-2xl py-3 border border-red-100">
                       <Heart size="20" color="#FF4B4B" variant="Bold" />
-                      <span className="text-lg font-extrabold text-[#FF4B4B]">{sadaqah.meals}</span>
+                      <span className="text-lg font-extrabold text-[#FF4B4B]">
+                        {sadaqah.meals}
+                      </span>
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide text-center">
                         {sadaqah.meals === 1 ? "Meal donated" : "Meals donated"}
                       </span>
@@ -393,7 +525,10 @@ export function Home({
                   <div className="h-px bg-gray-100" />
 
                   <button
-                    onClick={() => { setShowProfile(false); logout(); }}
+                    onClick={() => {
+                      setShowProfile(false);
+                      logout();
+                    }}
                     className="w-full py-3 rounded-2xl border-2 border-red-100 text-red-500 font-extrabold text-sm hover:bg-red-50 transition-colors"
                   >
                     Sign out

@@ -31,23 +31,30 @@ export type Noor = {
 
 interface AppState {
   bookmark: Bookmark;
+  pinnedBookmark: Bookmark;
   streak: Streak;
   completedJuz: number[];
   sadaqah: Sadaqah;
   noor: Noor;
   updateBookmark: (bookmark: Bookmark) => void;
+  updatePinnedBookmark: (bookmark: Bookmark) => void;
   markPageRead: (page: number, juz: number) => void;
   markJuzCompleted: (juz: number) => void;
   evaluateStreak: () => void;
-  /** Hydrate local state from Supabase — Supabase wins if it has more data */
   hydrateFromRemote: (remote: import("./supabase").RemoteProgress) => void;
 }
 
 const initialState: Omit<
   AppState,
-  "updateBookmark" | "markPageRead" | "markJuzCompleted" | "evaluateStreak"
+  | "updateBookmark"
+  | "updatePinnedBookmark"
+  | "markPageRead"
+  | "markJuzCompleted"
+  | "evaluateStreak"
+  | "hydrateFromRemote"
 > = {
   bookmark: null,
+  pinnedBookmark: null,
   streak: { current: 0, longest: 0, lastReadDate: null, history: [] },
   completedJuz: [],
   sadaqah: { meals: 0, completedJuz: [] },
@@ -66,6 +73,9 @@ export { getNoorMood } from "./noor";
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [bookmark, setBookmark] = useState<Bookmark>(initialState.bookmark);
+  const [pinnedBookmark, setPinnedBookmark] = useState<Bookmark>(
+    initialState.pinnedBookmark,
+  );
   const [streak, setStreak] = useState<Streak>(initialState.streak);
   const [completedJuz, setCompletedJuz] = useState<number[]>(
     initialState.completedJuz,
@@ -90,6 +100,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
 
     load("noorain_bookmark", setBookmark, initialState.bookmark);
+    load("noorain_pinned_bookmark", setPinnedBookmark, null);
     load("noorain_streak", setStreak, initialState.streak);
     load("noorain_completed_juz", setCompletedJuz, initialState.completedJuz);
     load("noorain_sadaqah", setSadaqah, initialState.sadaqah);
@@ -100,13 +111,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isLoaded) return;
     localStorage.setItem("noorain_bookmark", JSON.stringify(bookmark));
+    localStorage.setItem(
+      "noorain_pinned_bookmark",
+      JSON.stringify(pinnedBookmark),
+    );
     localStorage.setItem("noorain_streak", JSON.stringify(streak));
     localStorage.setItem("noorain_completed_juz", JSON.stringify(completedJuz));
     localStorage.setItem("noorain_sadaqah", JSON.stringify(sadaqah));
     localStorage.setItem("noorain_noor", JSON.stringify(noor));
-  }, [bookmark, streak, completedJuz, sadaqah, noor, isLoaded]);
+  }, [bookmark, pinnedBookmark, streak, completedJuz, sadaqah, noor, isLoaded]);
 
   const updateBookmark = (newBookmark: Bookmark) => setBookmark(newBookmark);
+  const updatePinnedBookmark = (newBookmark: Bookmark) =>
+    setPinnedBookmark(newBookmark);
 
   const markPageRead = (page: number, juz: number) => {
     const today = new Date().toISOString().split("T")[0];
@@ -284,7 +301,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       current: Math.max(local.current, remote.streak_current ?? 0),
       longest: Math.max(local.longest, remote.streak_longest ?? 0),
       lastReadDate: remote.streak_last_date ?? local.lastReadDate,
-      history: Array.from(new Set([...local.history, ...(remote.streak_history ?? [])])),
+      history: Array.from(
+        new Set([...local.history, ...(remote.streak_history ?? [])]),
+      ),
     }));
     // Noor mood: take highest (most earned)
     setNoor((local) => ({
@@ -294,11 +313,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Sadaqah: take highest
     setSadaqah((local) => ({
       meals: Math.max(local.meals, remote.sadaqah_meals ?? 0),
-      completedJuz: Array.from(new Set([...local.completedJuz, ...(remote.completed_juz ?? [])])),
+      completedJuz: Array.from(
+        new Set([...local.completedJuz, ...(remote.completed_juz ?? [])]),
+      ),
     }));
     // CompletedJuz: merge
     setCompletedJuz((local) =>
-      Array.from(new Set([...local, ...(remote.completed_juz ?? [])]))
+      Array.from(new Set([...local, ...(remote.completed_juz ?? [])])),
     );
   };
 
@@ -308,11 +329,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     <AppContext.Provider
       value={{
         bookmark,
+        pinnedBookmark,
         streak,
         completedJuz,
         sadaqah,
         noor,
         updateBookmark,
+        updatePinnedBookmark,
         markPageRead,
         markJuzCompleted,
         evaluateStreak,

@@ -11,7 +11,11 @@ import {
 import { useAppContext } from "../lib/store";
 import { getNoorMood } from "../lib/noor";
 import { useAuth } from "../lib/authContext";
-import { generateReflectionQuestions, ReflectionQuestion, summarizeTafsir } from "../lib/gemini";
+import {
+  generateReflectionQuestions,
+  ReflectionQuestion,
+  summarizeTafsir,
+} from "../lib/gemini";
 import { recordQuizScore } from "../lib/supabase";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -50,16 +54,30 @@ export function Reader({
   const [activeTafsirAyah, setActiveTafsirAyah] = useState<string | null>(null);
   const [tafsirData, setTafsirData] = useState<Tafsir | null>(null);
   const [loadingTafsir, setLoadingTafsir] = useState(false);
-  const { markPageRead, updateBookmark, markJuzCompleted, noor, bookmark } =
-    useAppContext();
-  const { pushReadingSession, flushActivityDay, pushBookmark, accessToken, user } = useAuth();
+  const {
+    markPageRead,
+    updateBookmark,
+    updatePinnedBookmark,
+    markJuzCompleted,
+    noor,
+    bookmark,
+    pinnedBookmark,
+  } = useAppContext();
+  const {
+    pushReadingSession,
+    flushActivityDay,
+    pushBookmark,
+    accessToken,
+    user,
+  } = useAuth();
   const sessionStartRef = useRef(Date.now());
   const visitedRangesRef = useRef<string[]>([]);
   const [reflectionQs, setReflectionQs] = useState<
-    [ReflectionQuestion, ReflectionQuestion] | null
+    [ReflectionQuestion, ReflectionQuestion, ReflectionQuestion] | null
   >(null);
   const [reflectionA1, setReflectionA1] = useState<number | null>(null);
   const [reflectionA2, setReflectionA2] = useState<number | null>(null);
+  const [reflectionA3, setReflectionA3] = useState<number | null>(null);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [loadingAiSummary, setLoadingAiSummary] = useState(false);
 
@@ -102,7 +120,7 @@ export function Reader({
       showToast("Ayah copied");
     } else if (action === "Bookmark") {
       const [surahId, ayahNum] = verse.verse_key.split(":").map(Number);
-      updateBookmark({
+      updatePinnedBookmark({
         surah: surahId,
         ayah: ayahNum,
         page,
@@ -258,7 +276,7 @@ export function Reader({
   }, [activeTafsirAyah]);
 
   useEffect(() => {
-    if (goodbyeStep !== 3) {
+    if (goodbyeStep !== 4) {
       if (recognitionRef.current) {
         recognitionRef.current.abort();
         recognitionRef.current = null;
@@ -283,11 +301,11 @@ export function Reader({
     recognition.onstart = () => setIsListening(true);
     recognition.onend = () => {
       setIsListening(false);
-      if (goodbyeStepRef.current === 3) setTimeout(tryStart, 400);
+      if (goodbyeStepRef.current === 4) setTimeout(tryStart, 400);
     };
     recognition.onerror = (e: any) => {
       setIsListening(false);
-      if (e.error !== "aborted" && goodbyeStepRef.current === 3)
+      if (e.error !== "aborted" && goodbyeStepRef.current === 4)
         setTimeout(tryStart, 600);
     };
     recognition.onresult = (event: any) => {
@@ -302,8 +320,8 @@ export function Reader({
           t.includes("shalom"),
       );
       if (heard) {
-        goodbyeStepRef.current = 4;
-        setGoodbyeStep(4);
+        goodbyeStepRef.current = 5;
+        setGoodbyeStep(5);
         setTimeout(() => {
           setGoodbyeStep(0);
           onNavigate("home");
@@ -338,6 +356,7 @@ export function Reader({
     setReflectionQs(null);
     setReflectionA1(null);
     setReflectionA2(null);
+    setReflectionA3(null);
     generateReflectionQuestions(surahName, translations).then(setReflectionQs);
     goodbyeStepRef.current = 1;
     setGoodbyeStep(1);
@@ -369,10 +388,10 @@ export function Reader({
   };
 
   const triggerGoodbyeAnimation = () => {
-    goodbyeStepRef.current = 4;
+    goodbyeStepRef.current = 5;
     playAllRef.current = false;
     if (currentlyPlayingAudio) currentlyPlayingAudio.pause();
-    setGoodbyeStep(4);
+    setGoodbyeStep(5);
     setTimeout(() => {
       setGoodbyeStep(0);
       onNavigate("home");
@@ -479,7 +498,9 @@ export function Reader({
             {/* Mushaf page header */}
             <div className="flex items-center justify-between mb-3 px-1">
               <span className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400">
-                {chapters.find(c => c.id === verses[0]?.verse_key?.split(":")[0] as any)?.name_simple ?? ""}
+                {chapters.find(
+                  (c) => c.id === (verses[0]?.verse_key?.split(":")[0] as any),
+                )?.name_simple ?? ""}
               </span>
               <span className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400">
                 Page {page}
@@ -528,9 +549,9 @@ export function Reader({
                 className={`card-duo p-5 md:p-6 transition-all ${
                   playingAyahKey === verse.verse_key
                     ? "border-[#1CB0F6] bg-blue-50/50"
-                    : bookmark?.surah ===
+                    : pinnedBookmark?.surah ===
                           parseInt(verse.verse_key.split(":")[0]) &&
-                        bookmark?.ayah ===
+                        pinnedBookmark?.ayah ===
                           parseInt(verse.verse_key.split(":")[1])
                       ? "border-[#1CB0F6]/40 bg-[#1CB0F6]/5"
                       : ""
@@ -545,9 +566,9 @@ export function Reader({
                       )?.name_simple || ""}
                       , {verse.verse_key}
                     </div>
-                    {bookmark?.surah ===
+                    {pinnedBookmark?.surah ===
                       parseInt(verse.verse_key.split(":")[0]) &&
-                      bookmark?.ayah ===
+                      pinnedBookmark?.ayah ===
                         parseInt(verse.verse_key.split(":")[1]) && (
                         <Bookmark size="14" color="#1CB0F6" variant="Bold" />
                       )}
@@ -745,21 +766,19 @@ export function Reader({
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-white/95 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-8"
           >
-            <div 
-              className="w-full h-full md:max-h-[850px] max-w-2xl mx-auto md:rounded-3xl flex flex-col items-center justify-start px-4 md:px-8 pb-0 overflow-hidden bg-white relative"
-            >
-            {/* ── Skip / close button ── */}
+            <div className="w-full h-full md:max-h-[850px] max-w-2xl mx-auto md:rounded-3xl flex flex-col items-center justify-start px-4 md:px-8 pb-0 overflow-hidden bg-white relative">
+              {/* ── Skip / close button ── */}
               <button
                 onClick={() => {
-                  handleDone();         // saves streak + happiness + flushes QF activity
-                  onNavigate("home");   // goes home
+                  handleDone(); // saves streak + happiness + flushes QF activity
+                  onNavigate("home"); // goes home
                 }}
                 className="absolute top-4 right-4 z-30 text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors px-3 py-1.5 rounded-full hover:bg-gray-100"
               >
                 Skip
               </button>
 
-            {/* ── Top: Question + Options ── */}
+              {/* ── Top: Question + Options ── */}
               <div className="flex-1 w-full flex flex-col justify-end items-center px-4 md:px-8 pt-6 pb-4 z-20 min-h-0">
                 <motion.div
                   key={`step-${goodbyeStep}`}
@@ -781,10 +800,14 @@ export function Reader({
                           ? reflectionQs[1].question
                           : "Hmm okay, one more — I want to make sure I understood it with you.")}
                       {goodbyeStep === 3 &&
+                        (reflectionQs
+                          ? reflectionQs[2].question
+                          : "Last one — I promise this one's interesting.")}
+                      {goodbyeStep === 4 &&
                         (happinessGained > 0
                           ? `JazakAllah Khair. +${happinessGained} happiness — say "Assalam Alaikum" to leave.`
                           : 'JazakAllah Khair for sharing. Say "Assalam Alaikum" — I want to hear your voice before you go.')}
-                      {goodbyeStep === 4 &&
+                      {goodbyeStep === 5 &&
                         "Wa Alaikum Assalam! Can't wait to read with you tomorrow."}
                     </p>
                   </div>
@@ -802,29 +825,43 @@ export function Reader({
                             onClick={() => {
                               if (!answered) {
                                 setReflectionA1(i);
-                                if (i === reflectionQs[0].correct) queueAdvance(2);
+                                if (i === reflectionQs[0].correct)
+                                  queueAdvance(2);
                               }
                             }}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
-                              !answered ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#F0F9FF] active:scale-95"
-                                : isCorrect ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
-                                : isSelected ? "bg-[#1CB0F6]/12 border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]"
-                                : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
+                              !answered
+                                ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#F0F9FF] active:scale-95"
+                                : isCorrect
+                                  ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
+                                  : isSelected
+                                    ? "bg-[#1CB0F6]/12 border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]"
+                                    : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
                             }`}
                           >
-                            <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs ${
-                              !answered ? "bg-[#1CB0F6]/12 text-[#1CB0F6] border border-[#1CB0F6]/35"
-                                : isCorrect ? "bg-[#58CC02] text-white"
-                                : isSelected ? "bg-[#1CB0F6] text-white"
-                                : "bg-gray-200 text-gray-500"
-                            }`}>{OPTION_LETTERS[i]}</span>
+                            <span
+                              className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs ${
+                                !answered
+                                  ? "bg-[#1CB0F6]/12 text-[#1CB0F6] border border-[#1CB0F6]/35"
+                                  : isCorrect
+                                    ? "bg-[#58CC02] text-white"
+                                    : isSelected
+                                      ? "bg-[#1CB0F6] text-white"
+                                      : "bg-gray-200 text-gray-500"
+                              }`}
+                            >
+                              {OPTION_LETTERS[i]}
+                            </span>
                             <span className="flex-1">{opt}</span>
                           </button>
                         );
                       })}
                       {reflectionA1 !== null && (
-                        <p className={`text-xs font-bold text-center ${ reflectionA1 === reflectionQs[0].correct ? "text-[#58CC02]" : "text-red-500" }`}>
-                          {reflectionA1 !== reflectionQs[0].correct && `Not quite — the answer was: "${reflectionQs[0].options[reflectionQs[0].correct]}"`}
+                        <p
+                          className={`text-xs font-bold text-center ${reflectionA1 === reflectionQs[0].correct ? "text-[#58CC02]" : "text-red-500"}`}
+                        >
+                          {reflectionA1 !== reflectionQs[0].correct &&
+                            `Not quite — the answer was: "${reflectionQs[0].options[reflectionQs[0].correct]}"`}
                         </p>
                       )}
                       <button
@@ -833,7 +870,11 @@ export function Reader({
                         className="btn-duo-primary w-full disabled:opacity-40"
                       >
                         <TickSquare size="20" color="white" variant="Bold" />
-                        {reflectionA1 === null ? "Pick one to continue" : reflectionA1 === reflectionQs[0].correct ? "Correct, next" : "Next"}
+                        {reflectionA1 === null
+                          ? "Pick one to continue"
+                          : reflectionA1 === reflectionQs[0].correct
+                            ? "Correct, next"
+                            : "Next"}
                       </button>
                     </div>
                   )}
@@ -856,66 +897,173 @@ export function Reader({
                             onClick={() => {
                               if (!answered) {
                                 setReflectionA2(i);
-                                if (i === reflectionQs[1].correct) queueAdvance(3);
+                                if (i === reflectionQs[1].correct)
+                                  queueAdvance(3);
                               }
                             }}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
-                              !answered ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#F0F9FF] active:scale-95"
-                                : isCorrect ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
-                                : isSelected ? "bg-[#1CB0F6]/12 border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]"
-                                : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
+                              !answered
+                                ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#F0F9FF] active:scale-95"
+                                : isCorrect
+                                  ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
+                                  : isSelected
+                                    ? "bg-[#1CB0F6]/12 border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]"
+                                    : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
                             }`}
                           >
-                            <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs ${
-                              !answered ? "bg-[#1CB0F6]/12 text-[#1CB0F6] border border-[#1CB0F6]/35"
-                                : isCorrect ? "bg-[#58CC02] text-white"
-                                : isSelected ? "bg-[#1CB0F6] text-white"
-                                : "bg-gray-200 text-gray-500"
-                            }`}>{OPTION_LETTERS[i]}</span>
+                            <span
+                              className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs ${
+                                !answered
+                                  ? "bg-[#1CB0F6]/12 text-[#1CB0F6] border border-[#1CB0F6]/35"
+                                  : isCorrect
+                                    ? "bg-[#58CC02] text-white"
+                                    : isSelected
+                                      ? "bg-[#1CB0F6] text-white"
+                                      : "bg-gray-200 text-gray-500"
+                              }`}
+                            >
+                              {OPTION_LETTERS[i]}
+                            </span>
                             <span className="flex-1">{opt}</span>
                           </button>
                         );
                       })}
                       {reflectionA2 !== null && (
-                        <p className={`text-xs font-bold text-center ${ reflectionA2 === reflectionQs[1].correct ? "text-[#58CC02]" : "text-red-500" }`}>
-                          {reflectionA2 !== reflectionQs[1].correct && `Not quite — the answer was: "${reflectionQs[1].options[reflectionQs[1].correct]}"`}
+                        <p
+                          className={`text-xs font-bold text-center ${reflectionA2 === reflectionQs[1].correct ? "text-[#58CC02]" : "text-red-500"}`}
+                        >
+                          {reflectionA2 !== reflectionQs[1].correct &&
+                            `Not quite — the answer was: "${reflectionQs[1].options[reflectionQs[1].correct]}"`}
+                        </p>
+                      )}
+                      <button
+                        onClick={() => setGoodbyeStep(3)}
+                        disabled={reflectionA2 === null}
+                        className="btn-duo-primary w-full disabled:opacity-40"
+                      >
+                        <TickSquare size="20" color="white" variant="Bold" />
+                        {reflectionA2 === null
+                          ? "Pick one to continue"
+                          : reflectionA2 === reflectionQs[1].correct
+                            ? "Correct, next"
+                            : "Next"}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Step 3 — Q3 MCQ */}
+                  {goodbyeStep === 3 && reflectionQs && (
+                    <div className="w-full flex flex-col gap-1.5">
+                      {reflectionQs[2].options.map((opt, i) => {
+                        const answered = reflectionA3 !== null;
+                        const isCorrect = i === reflectionQs[2].correct;
+                        const isSelected = reflectionA3 === i;
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => {
+                              if (!answered) {
+                                setReflectionA3(i);
+                                if (i === reflectionQs[2].correct)
+                                  queueAdvance(4);
+                              }
+                            }}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-left leading-snug transition-all ${
+                              !answered
+                                ? "bg-white border-2 border-[#1CB0F6]/25 border-b-4 text-gray-700 hover:border-[#1CB0F6]/55 hover:bg-[#F0F9FF] active:scale-95"
+                                : isCorrect
+                                  ? "bg-[#58CC02]/10 border-2 border-[#58CC02] border-b-4 text-[#58CC02]"
+                                  : isSelected
+                                    ? "bg-[#1CB0F6]/12 border-2 border-[#1CB0F6] border-b-4 text-[#1CB0F6]"
+                                    : "bg-gray-50 border-2 border-gray-100 border-b-2 text-gray-300"
+                            }`}
+                          >
+                            <span
+                              className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs ${
+                                !answered
+                                  ? "bg-[#1CB0F6]/12 text-[#1CB0F6] border border-[#1CB0F6]/35"
+                                  : isCorrect
+                                    ? "bg-[#58CC02] text-white"
+                                    : isSelected
+                                      ? "bg-[#1CB0F6] text-white"
+                                      : "bg-gray-200 text-gray-500"
+                              }`}
+                            >
+                              {OPTION_LETTERS[i]}
+                            </span>
+                            <span className="flex-1">{opt}</span>
+                          </button>
+                        );
+                      })}
+                      {reflectionA3 !== null && (
+                        <p
+                          className={`text-xs font-bold text-center ${reflectionA3 === reflectionQs[2].correct ? "text-[#58CC02]" : "text-red-500"}`}
+                        >
+                          {reflectionA3 !== reflectionQs[2].correct &&
+                            `Not quite — the answer was: "${reflectionQs[2].options[reflectionQs[2].correct]}"`}
                         </p>
                       )}
                       <button
                         onClick={() => {
                           const score =
-                            (reflectionA1 === reflectionQs![0].correct ? 1 : 0) +
-                            (reflectionA2 === reflectionQs![1].correct ? 1 : 0);
+                            (reflectionA1 === reflectionQs![0].correct
+                              ? 1
+                              : 0) +
+                            (reflectionA2 === reflectionQs![1].correct
+                              ? 1
+                              : 0) +
+                            (reflectionA3 === reflectionQs![2].correct ? 1 : 0);
                           if (accessToken && user?.sub) {
-                            recordQuizScore({ user_id: user.sub, user_name: user.name || "Anonymous", surah_number: currentChapterId || 0, surah_name: currentChapter?.name_simple || "", score, total_questions: 2 }, accessToken);
+                            recordQuizScore(
+                              {
+                                user_id: user.sub,
+                                user_name: user.name || "Anonymous",
+                                surah_number: currentChapterId || 0,
+                                surah_name: currentChapter?.name_simple || "",
+                                score,
+                                total_questions: 3,
+                              },
+                              accessToken,
+                            );
                           }
-                          setGoodbyeStep(3);
+                          setGoodbyeStep(4);
                         }}
-                        disabled={reflectionA2 === null}
+                        disabled={reflectionA3 === null}
                         className="btn-duo-primary w-full disabled:opacity-40"
                       >
                         <TickSquare size="20" color="white" variant="Bold" />
-                        {reflectionA2 === null ? "Pick one to continue" : reflectionA2 === reflectionQs[1].correct ? "Correct, finish" : "Finish"}
+                        {reflectionA3 === null
+                          ? "Pick one to continue"
+                          : reflectionA3 === reflectionQs[2].correct
+                            ? "Correct, finish"
+                            : "Finish"}
                       </button>
                     </div>
                   )}
+                  {goodbyeStep === 3 && !reflectionQs && (
+                    <div className="w-full flex justify-center py-4">
+                      <div className="w-6 h-6 border-2 border-[#1CB0F6] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
 
-
-
-                  {/* Step 3 - farewell + share + mic */}
-                  {goodbyeStep === 3 && (
+                  {/* Step 4 - farewell + share + mic */}
+                  {goodbyeStep === 4 && (
                     <div className="w-full flex flex-col items-center gap-3">
                       {/* Share button */}
                       <button
                         onClick={() => {
-                          const surahName = currentChapter?.name_simple || "the Quran";
+                          const surahName =
+                            currentChapter?.name_simple || "the Quran";
                           const q = reflectionQs?.[0]?.question ?? null;
                           const hint = q
                             ? `I just learned: "${q}" - and I got it right.`
                             : `I just finished a session in ${surahName}.`;
                           const text = `${hint}\n\nReading Quran with AI is something else. Come read ${surahName} with me on Noorain and see if you can beat my score.\n\nhttps://noorain-app.vercel.app`;
                           if (navigator.share) {
-                            navigator.share({ title: `Noorain - ${surahName}`, text });
+                            navigator.share({
+                              title: `Noorain - ${surahName}`,
+                              text,
+                            });
                           } else {
                             navigator.clipboard.writeText(text);
                             setToast("Copied to clipboard!");
@@ -961,7 +1109,10 @@ export function Reader({
               </div>
 
               {/* ── Bottom: Character ── */}
-              <div className="w-full shrink-0 flex items-end justify-center pb-6" style={{ height: "30%" }}>
+              <div
+                className="w-full shrink-0 flex items-end justify-center pb-6"
+                style={{ height: "30%" }}
+              >
                 <motion.img
                   key={goodbyeStep}
                   initial={{ scale: 0.85, opacity: 0, y: 16 }}
@@ -971,11 +1122,10 @@ export function Reader({
                   className="h-full w-auto object-contain object-bottom pointer-events-none"
                 />
               </div>
-
-        </div>
-      </motion.div>
-    )}
-  </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Toast */}
       <AnimatePresence>
@@ -1045,21 +1195,31 @@ export function Reader({
                       {!aiSummary && !loadingAiSummary ? (
                         <div className="flex flex-col items-center text-center gap-3 relative z-10">
                           <div className="w-12 h-12 bg-[#1CB0F6]/10 rounded-full flex items-center justify-center mb-1">
-                            <motion.img 
-                              src="/newcharacters/Waving.png" 
+                            <motion.img
+                              src="/newcharacters/Waving.png"
                               className="w-8 h-8 object-contain"
                               animate={{ rotate: [0, 10, -10, 0] }}
-                              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                repeatDelay: 3,
+                              }}
                             />
                           </div>
                           <div>
-                            <h4 className="font-bold text-gray-800 text-sm">Too long to read?</h4>
-                            <p className="text-xs text-gray-500 mt-1">Noorain can simplify and tell you the main lesson.</p>
+                            <h4 className="font-bold text-gray-800 text-sm">
+                              Too long to read?
+                            </h4>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Noorain can simplify and tell you the main lesson.
+                            </p>
                           </div>
                           <button
                             onClick={async () => {
                               setLoadingAiSummary(true);
-                              const summary = await summarizeTafsir(tafsirData.text);
+                              const summary = await summarizeTafsir(
+                                tafsirData.text,
+                              );
                               setAiSummary(summary);
                               setLoadingAiSummary(false);
                             }}
@@ -1073,25 +1233,39 @@ export function Reader({
                           <div className="relative w-12 h-12">
                             <motion.div
                               className="absolute inset-0 rounded-full border-2 border-[#1CB0F6]/20"
-                              animate={{ scale: [1, 1.2, 1], opacity: [1, 0, 1] }}
+                              animate={{
+                                scale: [1, 1.2, 1],
+                                opacity: [1, 0, 1],
+                              }}
                               transition={{ duration: 1.5, repeat: Infinity }}
                             />
-                            <motion.img 
+                            <motion.img
                               src={`/newcharacters/${moodInfo.asset}`}
                               className="w-full h-full object-contain"
                               animate={{ y: [0, -4, 0] }}
-                              transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+                              transition={{
+                                duration: 0.9,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                              }}
                             />
                           </div>
-                          <p className="text-xs font-bold text-[#1CB0F6] uppercase tracking-widest animate-pulse">Noorain is reading...</p>
+                          <p className="text-xs font-bold text-[#1CB0F6] uppercase tracking-widest animate-pulse">
+                            Noorain is reading...
+                          </p>
                         </div>
                       ) : (
                         <div className="relative z-10">
                           <div className="flex items-center gap-3 mb-3">
                             <div className="w-8 h-8 bg-[#1CB0F6]/10 rounded-full flex items-center justify-center shrink-0">
-                              <img src="/newcharacters/Hugs.png" className="w-5 h-5 object-contain" />
+                              <img
+                                src="/newcharacters/Hugs.png"
+                                className="w-5 h-5 object-contain"
+                              />
                             </div>
-                            <span className="text-[11px] font-black uppercase tracking-widest text-[#1CB0F6]">Noorain's Note</span>
+                            <span className="text-[11px] font-black uppercase tracking-widest text-[#1CB0F6]">
+                              Noorain's Note
+                            </span>
                           </div>
                           <div className="text-sm font-medium text-gray-700 leading-relaxed bg-[#1CB0F6]/5 p-4 rounded-xl border border-[#1CB0F6]/10 whitespace-pre-wrap">
                             {aiSummary}
@@ -1104,7 +1278,9 @@ export function Reader({
                     <div className="card-duo p-6">
                       <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-100">
                         <Book1 size="20" color="#9ca3af" variant="Bulk" />
-                        <h4 className="font-bold text-gray-400 text-sm">Full Text (Ibn Kathir)</h4>
+                        <h4 className="font-bold text-gray-400 text-sm">
+                          Full Text (Ibn Kathir)
+                        </h4>
                       </div>
                       <div
                         className="prose prose-sm max-w-none text-gray-600 leading-[1.8] prose-headings:font-bold prose-headings:text-gray-800 prose-headings:mt-6 prose-headings:mb-3 prose-p:mb-5 prose-a:text-[#1CB0F6] prose-blockquote:border-[#1CB0F6] prose-blockquote:bg-gray-50 prose-blockquote:px-4 prose-blockquote:py-2 prose-blockquote:rounded-r-xl prose-blockquote:text-gray-700 prose-blockquote:not-italic prose-strong:text-gray-800"
@@ -1114,8 +1290,13 @@ export function Reader({
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center mt-20 gap-4">
-                    <img src="/newcharacters/Waving.png" className="w-16 h-16 opacity-50 grayscale" />
-                    <div className="text-center text-gray-400 font-bold">Failed to load tafsir</div>
+                    <img
+                      src="/newcharacters/Waving.png"
+                      className="w-16 h-16 opacity-50 grayscale"
+                    />
+                    <div className="text-center text-gray-400 font-bold">
+                      Failed to load tafsir
+                    </div>
                   </div>
                 )}
               </div>
